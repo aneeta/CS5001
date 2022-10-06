@@ -1,7 +1,7 @@
 # WordCounter
-WordCounter is the first ptactical assignment for the CS5001 Object-Oriented Modelling, Design and Programming module at the University of St Andrews.
+`WordCounter` is the first ptactical assignment for the CS5001 Object-Oriented Modelling, Design and Programming module at the University of St Andrews.
 
-WordCounter reports counts of given word or words in a given file.
+`WordCounter` reports counts of given word or words in a given file.
 When ran for a single word, it will give a one sentence summary.
 Otherwise, it will display a table of counts sorted in the order of word entry.
 
