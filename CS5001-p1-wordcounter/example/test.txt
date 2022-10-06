@@ -1,4 +1,11 @@
+This
 This is a test document for the word counter practical assignment.
 This is a test document for the word counter practical assignment?
 This is a test document for the word counter practical assignment!
 THIS is a Test document for The word counter practical Assignment.
+Sample text ,,,,,
+sAMPle TeXt, saMPLE text UncopyRigHtable Incomprehensibility
+Indistinguishable Uncopyrightable Incomprehensibility
+Uncopyrightable Incomprehensibility
+Uncopyrightable IncompreHEnsibility
+Uncopyrightable Incomprehensibility
