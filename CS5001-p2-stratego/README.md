@@ -3,12 +3,14 @@ TODO
 [] lint
 [] complete README
 [] add tests
-[] * INFO - basic/Test04_PieceTests/infoJUnit : fail
---- submission output ---
-testGetLegalMoves(piece_tests.ScoutTest): expected:<8> but was:<7>
-Failed 1 out of 36 Piece JUnit tests!
+// TODO test a case when empty square is attacked -> should end up behaving like a regular move
+
+// todo check that winner is null if lose flag wan't set 
 
 # Stratego
+
+This Practical implements a two-player strategic board game.
+The objective is to capture the opponents flag.
 
 ## About
 - polymorphism
@@ -34,9 +36,8 @@ Navigate to the source directory and compile
 Ensure that JUnit is installed and present in your `CLASSPATH`
 
 ```bash
+java -cp "$CLASSPATH" ../customtests customtests.MainTest
 ```
 
-// TODO test a case when empty square is attacked -> should end up behaving like a regular move
 
-// todo check that winner is null if lose flag wan't set 
 

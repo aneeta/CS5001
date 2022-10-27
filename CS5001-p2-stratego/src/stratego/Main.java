@@ -7,11 +7,27 @@ import java.util.Map;
 import java.util.Random;
 
 import stratego.*;
-import stratego.pieces.*;;
+import stratego.pieces.*;
 
 public class Main {
 
     public static void main(String[] args) {
+        // implement game instantiation
+        // Randomly assign pieces to a board for each player
+        // player one range [0,0]->[4,9]
+        // player two range [6,0]->[9,9]
+        // generate arrays represnting the locations
+        // generate random number to represent the index
+        // assign a piece to the drawn coordinates
+        // remove form the array 
+
+        // game play function
+        // while getWinner is null
+        // let players input stuff to the terminal
+        // list moves and attacks for a piece on a given square
+        // move/attack by giving a target square
+
+
         Square land, land2, land3, land4, water, water2;
         Piece sergeant, general, general2;
         Player michael, oz;
