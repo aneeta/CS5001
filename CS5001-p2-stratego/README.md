@@ -38,4 +38,5 @@ Ensure that JUnit is installed and present in your `CLASSPATH`
 
 // TODO test a case when empty square is attacked -> should end up behaving like a regular move
 
+// todo check that winner is null if lose flag wan't set 
 
