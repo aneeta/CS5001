@@ -20,6 +20,12 @@ public class Game {
     private Player winner;
     private Square[][] board = new Square[HEIGHT][WIDTH];
 
+
+    /**
+     * Game constructor.
+     * @param p0 Player 1
+     * @param p1 Player 2
+     */
     public Game(Player p0, Player p1) {
         playerArray = new Player[]{p0, p1};
         setUpBoard();
@@ -56,14 +62,16 @@ public class Game {
      * @return Player
      */
     public Player getWinner() {
-        // TODO
-        // if (playerArray[0].hasLost() && playerArray[0].hasLost()) {
-        //     throw new Exception("Both players lost?");
-        // }
-        if (playerArray[0].hasLost()) {
+        if (playerArray[0].hasLost() && playerArray[1].hasLost()) {
+            // Would maybe throw error or consult to ask if a situation
+            // like this would arise/make sense
+            System.out.println("Both players lost!");
+            return null;
+        }
+        else if (playerArray[0].hasLost()) {
             winner = playerArray[1];
         }
-        if (playerArray[1].hasLost()) {
+        else if (playerArray[1].hasLost()) {
             winner = playerArray[0];
         }
         return winner;

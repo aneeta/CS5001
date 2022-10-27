@@ -15,6 +15,13 @@ public abstract class Piece {
     private Square square;
     private int rank;
 
+
+    /**
+     * Piece constructor.
+     * @param owner Player who the piece belongs to
+     * @param square Square to place the piece on
+     * @param rank Piece rank (determines attack outcome)
+     */
     public Piece(Player owner, Square square, int rank) {
         this.owner = owner;
         this.rank = rank;

@@ -13,6 +13,11 @@ import stratego.Square;
  */
 public class Scout extends Piece {
 
+    /**
+     * Scout constructor.
+     * @param owner Player who the piece belongs to
+     * @param square Square to place the piece on
+     */
     public Scout(Player owner, Square square) {
         super(owner, square, 2);
     }

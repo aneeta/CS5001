@@ -8,6 +8,11 @@ public class Player {
     private int playerNumber;
     private boolean lossFlag;
 
+    /**
+     * Player constructor.
+     * @param name Player name
+     * @param playerNumber Player number
+     */
     public Player(String name, int playerNumber) {
         this.name = name;
         this.playerNumber = playerNumber;

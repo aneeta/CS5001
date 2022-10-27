@@ -17,16 +17,27 @@ public class Square {
     private Piece gamePiece;
     private Map<Direction, Square> neighbours;
 
+    /**
+     * Square constructor.
+     * @param game Game to which the Square belongs to
+     * @param row Square row coordinate
+     * @param col Square column coordinate
+     * @param isWater Flag indicating if square is one of water squares
+     */
     public Square(Game game, int row, int col, boolean isWater) {
         this.game = game;
         this.isWater = isWater;
 
-        // Wanted to throw IllegalArgumentException here
-        // but the automated tests fail since exception is not expected here.
+        // Wanted to throw IllegalArgumentException if row/col out of bounds
+        // but the automated tests fail since exception is not expected here
         // Instead quietly confrorming the input to the board
-        // if its out of bounds
-        if (row < 0 | row >= Game.WIDTH) row = ((row < 0) ? 0 : 9);
-        if (col < 0 | col >= Game.HEIGHT) col = ((col < 0) ? 0 : 9);
+        // if it's out of bounds
+        if (row < 0 | row >= Game.WIDTH) {
+            row = ((row < 0) ? 0 : 9);
+        }
+        if (col < 0 | col >= Game.HEIGHT) {
+            col = ((col < 0) ? 0 : 9);
+        }
 
         this.row = row;
         this.col = col;
@@ -103,7 +114,6 @@ public class Square {
      */
     public Map<Direction, Square> getNeighbours() {
         // avoids regenerating the same object
-        // TODO test that actually works
         if (this.neighbours != null) {
             return this.neighbours;
         }
@@ -118,6 +128,9 @@ public class Square {
                 continue;
             }
         }
+
+        this.neighbours = neighbours;
+
         return neighbours;
     }
 
