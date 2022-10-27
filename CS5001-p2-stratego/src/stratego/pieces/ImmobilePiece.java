@@ -5,8 +5,10 @@ import java.util.List;
 
 import stratego.Player;
 import stratego.Square;
-import stratego.exceptions.IllegalArgumentException;
 
+/**
+ * Class representing static Stratego Game Pieces.
+ */
 public abstract class ImmobilePiece extends Piece {
     public ImmobilePiece(Player owner, Square square, int rank) {
         super(owner, square, rank);

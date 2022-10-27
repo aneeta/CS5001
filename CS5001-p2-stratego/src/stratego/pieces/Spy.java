@@ -4,6 +4,9 @@ import stratego.CombatResult;
 import stratego.Player;
 import stratego.Square;
 
+/**
+ * Class representing the Spy Stratego Game Piece.
+ */
 public class Spy extends StepMover {
     public Spy(Player owner, Square square) {
         super(owner, square, 1);
