@@ -8,7 +8,9 @@ import stratego.Direction;
 import stratego.Player;
 import stratego.Square;
 
-
+/**
+ * Class representing Scout Stratego Game Piece.
+ */
 public class Scout extends Piece {
 
     public Scout(Player owner, Square square) {

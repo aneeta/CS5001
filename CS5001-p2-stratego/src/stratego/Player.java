@@ -1,5 +1,8 @@
 package stratego;
 
+/**
+ * Class representing a Player in a Stratego Game.
+ */
 public class Player {
     private String name;
     private int playerNumber;
@@ -12,18 +15,37 @@ public class Player {
 
     }
 
+
+    /** 
+     * Method setting the loss flag.
+     */
     public void loseGame() {
         lossFlag = true;
     }
 
+
+    /** 
+     * Method checking if a Player has lost the game.
+     * @return boolean
+     */
     public boolean hasLost() {
         return lossFlag;
     }
 
+
+    /** 
+     * Getter method for Player name.
+     * @return String
+     */
     public String getName() {
         return name;
     }
 
+
+    /** 
+     * Getter method for Player number.
+     * @return int
+     */
     public int getPlayerNumber() {
         return playerNumber;
     }

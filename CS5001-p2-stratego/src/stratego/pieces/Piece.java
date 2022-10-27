@@ -7,7 +7,9 @@ import stratego.CombatResult;
 import stratego.Player;
 import stratego.Square;
 
-
+/**
+ * Class representing the Stratego Game Piece.
+ */
 public abstract class Piece {
     private Player owner;
     private Square square;
@@ -20,9 +22,9 @@ public abstract class Piece {
         this.square = square;
     }
 
-    
+
     /** 
-     * Method to move the Piece into another square on the board
+     * Method to move the Piece into another square on the board.
      * @param toSquare square to move into
      */
     public void move(Square toSquare) {
@@ -31,9 +33,9 @@ public abstract class Piece {
         this.square.placePiece(this);
     }
 
-    
+
     /** 
-     * Method to attack another Piece
+     * Method to attack another Piece.
      * @param targetSquare square to attack
      */
     public void attack(Square targetSquare) {
@@ -44,8 +46,7 @@ public abstract class Piece {
             targetSquare.placePiece(this);
             this.square.removePiece();
             this.square = targetSquare;
-        }
-        else {
+        } else {
             // if lost, destroyed
             beCaptured();
             // both destroyed
@@ -55,10 +56,10 @@ public abstract class Piece {
         }
     }
 
-    
+
     /** 
-     * Method evaluating attack result
-     * @param targetPiece
+     * Method evaluating attack result.
+     * @param targetPiece square to attack
      * @return CombatResult
      */
     public CombatResult resultWhenAttacking(Piece targetPiece) {
@@ -71,63 +72,64 @@ public abstract class Piece {
         return CombatResult.WIN;
     }
 
-    
+
     /** 
-     * Method triggering capture on another Piece
+     * Method triggering capture on another Piece.
      * (though a Square it's located on)
-     * @param targetSquare
+     * @param targetSquare square to capture
      */
     public void capture(Square targetSquare) {
         targetSquare.getPiece().beCaptured();
     }
 
-    
+
     /** 
-     * Method triggering capture on another Piece
-     * @param targetPiece
+     * Method triggering capture on another Piece.
+     * @param targetPiece piece to capture
      */
     public void capture(Piece targetPiece) {
         targetPiece.beCaptured();
     }
 
+
     /** 
-     * Method triggering capture on this Piece
+     * Method triggering capture on this Piece.
      */
     public void beCaptured() {
         this.square.removePiece();
         this.square = null;
     }
 
-    
+
     /** 
-     * Getter method for the Square this Piece is placed on
+     * Getter method for the Square this Piece is placed on.
      * @return Square
      */
     public Square getSquare() {
         return this.square;
     }
 
-    
+
     /** 
-     * Getter method for the Player this Piece belongs to
+     * Getter method for the Player this Piece belongs to.
      * @return Player
      */
     public Player getOwner() {
         return this.owner;
     }
 
-    
+
     /** 
-     * Getter method for the Rank of this Piece
+     * Getter method for the Rank of this Piece.
      * @return int
      */
     public int getRank() {
         return this.rank;
     }
 
-    
+
     /** 
-     * Method returning move options for this Piece
+     * Method returning move options for this Piece.
      * @return List<Square>
      */
     public List<Square> getLegalMoves() {
@@ -142,8 +144,8 @@ public abstract class Piece {
         return legalMoves;
     };
 
-    
-    /** Method returning attack options for this Piece
+
+    /** Method returning attack options for this Piece.
      * @return List<Square>
      */
     public List<Square> getLegalAttacks() {

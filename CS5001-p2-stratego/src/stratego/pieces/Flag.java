@@ -3,7 +3,9 @@ package stratego.pieces;
 import stratego.Player;
 import stratego.Square;
 
-
+/**
+ * Class representing Flag Stratego Game Pieces.
+ */
 public class Flag extends ImmobilePiece {
 
     public Flag(Player owner, Square square) {

@@ -2,11 +2,18 @@ package stratego;
 
 import java.util.Arrays;
 
+/**
+ * Class representing a Game of Stratego.
+ */
 public class Game {
 
+    /** Board Height. */
     public static int HEIGHT = 10;
+    /** Board Width. */
     public static int WIDTH = 10;
+    /** Row (X-) Coordinates of Squares containing water. */
     public static int[] WATER_ROWS = {4, 5};
+    /** Column (Y-) Coordinates of Squares containing water. */
     public static int[] WATER_COLS = {2, 3, 6, 7};
 
     private Player[] playerArray;
@@ -21,21 +28,35 @@ public class Game {
     void setUpBoard() {
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
-                // boolean waterCol = ((Arrays.stream(WATER_COLS).anyMatch(x -> x == j))? true: false);
-                boolean isWater = ((contains(WATER_ROWS, i) && contains(WATER_COLS, j)) ? true : false);
+                boolean isWater = (
+                    (contains(WATER_ROWS, i) && contains(WATER_COLS, j)) ? true : false);
                 board[i][j] = new Square(this, i, j, isWater);
             }
         }
     }
 
+
+    /** 
+     * Getter method for a Player assosiated with the Game.
+     * @param playerNumber int indicating player number (0 or 1)
+     * @return Player
+     */
     public Player getPlayer(int playerNumber) {
         if (playerNumber < 0 || playerNumber > 1) {
-            throw new IllegalArgumentException("No such player. Choose from player 0 or 1.");
+            throw new IllegalArgumentException(
+                "No such player. Choose from player 0 or 1.");
         }
         return playerArray[playerNumber];
     }
 
+
+    /** 
+     * Method checking if either of the Players has lost.
+     * Then returning the non-losing (winning) Player
+     * @return Player
+     */
     public Player getWinner() {
+        // TODO
         // if (playerArray[0].hasLost() && playerArray[0].hasLost()) {
         //     throw new Exception("Both players lost?");
         // }
@@ -48,6 +69,14 @@ public class Game {
         return winner;
     }
 
+
+    /** 
+     * Getter method for a Square on the board of this Game.
+     * @param row Square row
+     * @param col Square column
+     * @return Square
+     * @throws IndexOutOfBoundsException accessing a location outside the board
+     */
     public Square getSquare(int row, int col) throws IndexOutOfBoundsException {
         if ((row < 0 || row > HEIGHT) || (col < 0 || col > WIDTH)) {
             throw new IndexOutOfBoundsException("Square beyond the board!");
@@ -55,7 +84,14 @@ public class Game {
         return board[row][col];
     }
 
-    public static boolean contains(final int[] list, final int idx) {
-        return Arrays.stream(list).anyMatch(x -> x == idx);
+
+    /** 
+     * Helper method checking if an given list contains a given number.
+     * @param list int array to check
+     * @param target int checked
+     * @return boolean
+     */
+    public static boolean contains(final int[] list, final int target) {
+        return Arrays.stream(list).anyMatch(x -> x == target);
     }
 }
