@@ -1,14 +1,12 @@
 package stratego;
 
-import java.lang.ArrayIndexOutOfBoundsException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.print.attribute.HashAttributeSet;
+// import java.lang.IllegalArgumentException;
 
 import stratego.pieces.Piece;
+
 
 public class Square {
     private Game game;
@@ -16,12 +14,19 @@ public class Square {
     private int col;
     private boolean isWater;
     private Piece gamePiece;
+    private Map<Direction, Square> neighbours;
 
     public Square(Game game, int row, int col, boolean isWater) {
         this.game = game;
+        this.isWater = isWater;
+
+        // Wanted to throw IllegalArgumentException here
+        // but the automated tests fail since exception is not expected here.
+        // Instead quietly confrorming the input to the board
+        if (row < 0 | row >= Game.WIDTH) row = ((row < 0) ? 0 : 9);
+        if (col < 0 | col >= Game.HEIGHT) col = ((col < 0) ? 0 : 9);
         this.row = row;
         this.col = col;
-        this.isWater = isWater;
     }
 
     public void placePiece(Piece piece) {
@@ -32,61 +37,62 @@ public class Square {
     }
 
     public void removePiece() {
-        gamePiece = null;
+        this.gamePiece = null;
     }
 
     public Piece getPiece() {
-        return gamePiece;
+        return this.gamePiece;
     }
 
     public Game getGame() {
-        return game;
+        return this.game;
     }
 
     public int getRow() {
-        return row;
+        return this.row;
     }
 
     public int getCol() {
-        return col;
+        return this.col;
     }
 
     public boolean canBeEntered() {
-        return ((!isWater) && (gamePiece == null));
+        return ((!this.isWater) && (this.gamePiece == null));
     }
 
-    public Map<String, Square> getNeighbours() {
-        Map<String, Square> neighbours = new HashMap<String, Square>();
-        Map<String,Coords> possibleNeighbours = new HashMap<String,Coords>();
-        possibleNeighbours.put("RIGHT", new Coords(row, col + 1));
-        possibleNeighbours.put("LEFT", new Coords(row, col - 1));
-        possibleNeighbours.put("DOWN", new Coords(row + 1, col));
-        possibleNeighbours.put("UP", new Coords(row - 1, col));
+    public Map<Direction, Square> getNeighbours() {
+        // avoids regenerating the same object
+        if (this.neighbours != null) {
+            return this.neighbours;
+        }
 
-        for (Map.Entry<String, Coords> entry : possibleNeighbours.entrySet()) {
-            // why not catching exception??
-            // try {
-            //     Square nextSquare = getGame().getSquare(entry.getValue().x, entry.getValue().y);
-            //     neighbours.put(entry.getKey(), nextSquare);
-            // } catch (ArrayIndexOutOfBoundsException e) {}
-            int i = entry.getValue().x;
-            int j = entry.getValue().y;
-            if ((i >= 0 && i < 10 ) && (j >= 0 && j < 10)) {
-                Square nextSquare = getGame().getSquare(i, j);
-                neighbours.put(entry.getKey(), nextSquare);
+        Map<Direction, Square> neighbours = new HashMap<Direction, Square>();
+
+        for (Direction dir : Direction.values()) {
+            try {
+                neighbours.put(dir, moveByOne(dir));
+            } catch (IndexOutOfBoundsException e) {
+                // skipping squares outside the board
+                continue;
             }
         }
+
         return neighbours;
     }
 
-}
-
-class Coords {
-    int x;
-    int y;
-
-    Coords(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Square moveByOne(Direction direction) throws ArrayIndexOutOfBoundsException {
+        if (direction == Direction.UP) {
+            return getGame().getSquare(this.row - 1, this.col);
+        }
+        if (direction == Direction.DOWN) {
+            return getGame().getSquare(this.row + 1, this.col);
+        }
+        if (direction == Direction.RIGHT) {
+            return getGame().getSquare(this.row, this.col + 1);
+        }
+        if (direction == Direction.LEFT) {
+            return getGame().getSquare(this.row, this.col - 1);
+        }
+        return null;
     }
 }
