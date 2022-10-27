@@ -1,6 +1,10 @@
 package stratego;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import stratego.*;
 import stratego.pieces.*;;
@@ -57,9 +61,28 @@ public class Main {
     }
 
     public static Game initalizeRandomGame(int seed) {
-        // TODO
-        Player p0 = new Player("Michael", 0);
-        Player p1 = new Player("Ozgur", 1);
-        return new Game(p0, p1);
+        Player p1 = new Player("Alice", 0);
+        Player p2 = new Player("Bob", 1);
+
+        Game game = new Game(p1, p2);
+
+        Map<Player,List<Piece>> piecesMap = new HashMap<>();
+        piecesMap.put(p1, new ArrayList<>());
+        piecesMap.put(p2, new ArrayList<>());
+        // Populate the Squares
+        // Player 1
+        for (Player key : piecesMap.keySet()) {
+
+
+        }
+        
+        
+        return game;
+    }
+
+    public static int getRandomInt(int lower, int upper) {
+        // fixing seed for deterministic results
+        Random random = new Random(0);
+        return random.ints(lower, upper).findFirst().getAsInt();
     }
 }
