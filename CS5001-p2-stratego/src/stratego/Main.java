@@ -5,21 +5,69 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 
 import stratego.*;
 import stratego.pieces.*;
+import stratego.terminalgame.GameMove;
+import stratego.terminalgame.Move;
 
 public class Main {
 
     public static void main(String[] args) {
-        // implement game instantiation
-        // Randomly assign pieces to a board for each player
-        // player one range [0,0]->[4,9]
-        // player two range [6,0]->[9,9]
-        // generate arrays represnting the locations
-        // generate random number to represent the index
-        // assign a piece to the drawn coordinates
-        // remove form the array 
+        String nameP1, nameP2;
+
+        try {
+            if (args[0] != null && args[1] != null) {
+                System.out.printf(
+                        "Player 1: %s\nPlayer 2: %s\n",
+                        args[0], args[1]);
+                nameP1 = args[0];
+                nameP2 = args[1];
+            } else {
+                nameP1 = "Unknown Name";
+                nameP2 = "Unknown Name";
+            }
+
+        } catch (ArrayIndexOutOfBoundsException e) {
+            nameP1 = "Unknown Name";
+            nameP2 = "Unknown Name";
+        }
+
+        Player p1 = new Player(nameP1, 0);
+        Player p2 = new Player(nameP2, 1);
+
+        Game game = new Game(p1, p2);
+        GameMove.populateBoard(game);
+
+        Scanner input = new Scanner(System.in);
+
+        int round = 0;
+        System.out.printf("Round %d - Player %d's turn: \n", round, round % 2 + 1);
+        while (input.hasNextLine()) {
+            if (game.getWinner() != null) {
+                System.out.printf("%s won!\n", game.getWinner().getName());
+                break;
+            }
+            // System.out.printf("Round %d - Player %d's turn: \n", round, round % 2 + 1);
+            String currentInput = input.nextLine();
+            // Player One plays on even turns, Player Two on odd turns
+            Player player = ((round % 2 == 0) ? p1 : p2);
+
+            System.out.printf("Player %d's command: ", round % 2 + 1);
+
+            System.out.printf("%s\n", currentInput);
+
+            // parse user input
+            GameMove thisMove = GameMove.parseInput(currentInput);
+
+            // play one iteration
+            playOneRound(thisMove, player, game);
+            // increment round
+            round++;
+        }
+
+        input.close();
 
         // game play function
         // while getWinner is null
@@ -27,12 +75,11 @@ public class Main {
         // list moves and attacks for a piece on a given square
         // move/attack by giving a target square
 
-
         Square land, land2, land3, land4, water, water2;
         Piece sergeant, general, general2;
         Player michael, oz;
 
-        land = new Square(null, 1, 2, false);  // null game, but should still work
+        land = new Square(null, 1, 2, false); // null game, but should still work
         land2 = new Square(null, 1, 3, false);
         land3 = new Square(null, 4, 3, false);
         land4 = new Square(null, 4, 9, false);
@@ -42,16 +89,14 @@ public class Main {
         michael = new Player("Michael", 0);
         oz = new Player("Ozgur", 1);
 
-        sergeant = new StepMover(michael, land, 4);  // weaker
-        general = new StepMover(oz, land3, 9);  // stronger
+        sergeant = new StepMover(michael, land, 4); // weaker
+        general = new StepMover(oz, land3, 9); // stronger
         general2 = new StepMover(michael, land4, 9);
 
-        
         // general attacks sergeant (legality not checked)
-        general.attack(land);  
+        general.attack(land);
 
         // the general defeats the sergeant
-
         // the general has moved to the sergeant's square
 
         // Player p0 = new Player("Michael", 0);
@@ -73,32 +118,53 @@ public class Main {
 
         // List<Square> moves = marshal.getLegalMoves();
         // List<Square> attacks = marshal.getLegalAttacks();
-
     }
 
-    public static Game initalizeRandomGame(int seed) {
-        Player p1 = new Player("Alice", 0);
-        Player p2 = new Player("Bob", 1);
-
-        Game game = new Game(p1, p2);
-
-        Map<Player,List<Piece>> piecesMap = new HashMap<>();
-        piecesMap.put(p1, new ArrayList<>());
-        piecesMap.put(p2, new ArrayList<>());
-        // Populate the Squares
-        // Player 1
-        for (Player key : piecesMap.keySet()) {
-
-
+    public static void playOneRound(GameMove move, Player player, Game game) {
+        Piece currentPiece = game.getSquare(
+                move.getCurrentRow(), move.getCurrentCol()).getPiece();
+        if (currentPiece == null) {
+            System.out.println("Chosen square empty");
+            return;
         }
-        
-        
-        return game;
-    }
+        if (move.getMove().equals("attack")) {
+            Square toSquare = game.getSquare(move.getTargetRow(), move.getTargetCol());
+            currentPiece.attack(toSquare);
 
-    public static int getRandomInt(int lower, int upper) {
-        // fixing seed for deterministic results
-        Random random = new Random(0);
-        return random.ints(lower, upper).findFirst().getAsInt();
+        } else if (move.getMove().equals("move")) {
+            Square toSquare = game.getSquare(move.getTargetRow(), move.getTargetCol());
+            try {
+                System.out.printf(
+                        "Moving from (%d,%d) to (%d,%d)\n",
+                        currentPiece.getSquare().getRow(), currentPiece.getSquare().getCol(),
+                        toSquare.getRow(), toSquare.getCol());
+                currentPiece.move(toSquare);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Square Occupied!");
+                System.out.println("Warning - Rules not fully enforced!");
+                return;
+            }
+
+        } else if (move.getMove().equals("getattacks")) {
+            List<Square> attackList = currentPiece.getLegalAttacks();
+            System.out.printf(
+                    "Possible attacks for a piece on (%d,%d) square: ",
+                    move.getCurrentRow(), move.getCurrentCol());
+            for (Square s : attackList) {
+                System.out.printf(" %d,%d ", s.getRow(), s.getCol());
+            }
+            System.out.println("done");
+
+        } else if (move.getMove().equals("getmoves")) {
+            List<Square> moveList = currentPiece.getLegalMoves();
+            System.out.printf(
+                    "Possible moves for a piece on (%d,%d) square: ",
+                    move.getCurrentRow(), move.getCurrentCol());
+            for (Square s : moveList) {
+                System.out.printf(" %d,%d ", s.getRow(), s.getCol());
+            }
+            System.out.println("done");
+        }
+        GameMove.printPieceLocations(game);
     }
 }
