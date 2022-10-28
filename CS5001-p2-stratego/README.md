@@ -29,9 +29,9 @@ The console takes input of the form (*space separated*)
 ```
 <action> <coords> <coords>?
 ```
-where action can be `move` (moves the piece on that square to another square), `attack` (make the pice on that square attack a piece on a given square),  `getmoves` (produces a list of attacks for a given square), `getattacks` (produces a list of attacks for a given square).
+where **action** can be `move` (moves the piece on that square to another square), `attack` (make the pice on that square attack a piece on a given square),  `getmoves` (produces a list of attacks for a given square), `getattacks` (produces a list of attacks for a given square).
 
-`move` and `attack` require two coordinate arguments, whereas `getmoves` and `getattacks` only need one.
+`move` and `attack` require **two** coordinate arguments, whereas `getmoves` and `getattacks` only need one.
 Missing a second argument for `move` and `attack` will yield and `IndexOutOFBoundsException` (result of a time constraint than a design deicsion).
 
 The coordinates ought to have the following format
