@@ -15,6 +15,9 @@ import stratego.pieces.Piece;
 import stratego.pieces.Scout;
 import stratego.pieces.StepMover;
 
+/**
+ * Class to contain Moving functionality in Terminal version of Stratego.
+ */
 public class GameMove {
     private String move;
     private int currentRow;
@@ -26,6 +29,12 @@ public class GameMove {
     private static int[] PLAYER_2_ROWS = { 6, 7, 8, 9 };
     private static int[] PLAYER_COLS = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
+    /**
+     * Method to parse input stream into a GameMove object.
+     * 
+     * @param input input string
+     * @return GameMove
+     */
     public static GameMove parseInput(String input) {
         GameMove gameMove = new GameMove();
         String[] splitOne = input.split(" ");
@@ -44,6 +53,15 @@ public class GameMove {
         return gameMove;
     }
 
+    /**
+     * Method to populate board with various game pieces.
+     * Pieces are places randomly on the board.
+     * If same square is selected, that piece is omitted
+     * so possible for the board not to be populated with a whole set.
+     * 
+     * @param game Game object
+     * @return Game
+     */
     public static Game populateBoard(Game game) {
         System.out.println("Populating the board");
         // Randomly assign pieces to a board for each player
@@ -60,63 +78,69 @@ public class GameMove {
         return game;
     }
 
+    /**
+     * Helper method to generate coordinate lists which are multiples of rows/cols.
+     * 
+     * @param listCoords row/col list
+     * @param n          multiplication factor
+     * @return List<Integer>
+     */
     public static List<Integer> generateCoordsList(int[] listCoords, int n) {
         List<Integer> list = Arrays.stream(listCoords).boxed().toList();
         return list.stream().flatMap(i -> Collections.nCopies(n, i).stream())
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Method assigning Pieces to the board.
+     * 
+     * @param player player to whom the pieces belong
+     * @param game   associated game
+     * @param rows   player's generated rows
+     * @param cols   player's generated columns
+     */
     public static void assignPiece(Player player, Game game, List<Integer> rows, List<Integer> cols) {
-
+        // Scouts
         for (int i = 0; i < 8; i++) {
             int x = getRandomInt(0, rows.size() - 1);
             int y = getRandomInt(0, cols.size() - 1);
             Square square = game.getSquare(rows.get(x), cols.get(y));
-            // Square square = getRandomSquare(game, rows, cols);
-            // if (!square.canBeEntered()) {
-            // x = getRandomInt(0, rows.size() - 1);
-            // y = getRandomInt(0, cols.size() - 1);
-            // square = game.getSquare(rows.get(x), cols.get(y));
-            // }
             try {
                 new Scout(player, square);
             } catch (IllegalArgumentException e) {
                 continue;
             }
-
             rows.remove(x);
             cols.remove(y);
         }
+        // Bombs
         for (int i = 0; i < 6; i++) {
             int x = getRandomInt(0, rows.size() - 1);
             int y = getRandomInt(0, cols.size() - 1);
 
             Square square = game.getSquare(rows.get(x), cols.get(y));
-            // if (!square.canBeEntered()) {
-            // square = getRandomSquare(game, rows, cols);
-            // }
+
             if (!square.canBeEntered()) {
                 x = getRandomInt(0, rows.size() - 1);
                 y = getRandomInt(0, cols.size() - 1);
                 square = game.getSquare(rows.get(x), cols.get(y));
             }
+
             try {
                 new Bomb(player, square);
             } catch (IllegalArgumentException e) {
                 continue;
             }
-
             rows.remove(x);
             cols.remove(y);
         }
+        // Miners
         for (int i = 0; i < 5; i++) {
             int x = getRandomInt(0, rows.size() - 1);
             int y = getRandomInt(0, cols.size() - 1);
 
             Square square = game.getSquare(rows.get(x), cols.get(y));
-            // while (square.canBeEntered()) {
-            // square = getRandomSquare(game, rows, cols);
-            // }
+
             if (!square.canBeEntered()) {
                 x = getRandomInt(0, rows.size() - 1);
                 y = getRandomInt(0, cols.size() - 1);
@@ -133,40 +157,10 @@ public class GameMove {
         }
         // Place Sargents
         placeStepMover(player, game, rows, cols, 4, 4);
-        // for (int i = 0; i < 4; i++) {
-        // int x = getRandomInt(0, rows.size());
-        // int y = getRandomInt(0, cols.size());
-
-        // Square square = game.getSquare(x, y);
-        // square.placePiece(new StepMover(player, square, 4));
-
-        // rows.remove(x);
-        // cols.remove(y);
-        // }
         // Place Lieutenants
         placeStepMover(player, game, rows, cols, 4, 5);
-        // for (int i = 0; i < 4; i++) {
-        // int x = getRandomInt(0, rows.size());
-        // int y = getRandomInt(0, cols.size());
-
-        // Square square = game.getSquare(x, y);
-        // square.placePiece(new StepMover(player, square, 4));
-
-        // rows.remove(x);
-        // cols.remove(y);
-        // }
         // Place Captains
         placeStepMover(player, game, rows, cols, 4, 6);
-        // for (int i = 0; i < 4; i++) {
-        // int x = getRandomInt(0, rows.size());
-        // int y = getRandomInt(0, cols.size());
-
-        // Square square = game.getSquare(x, y);
-        // square.placePiece(new StepMover(player, square, 4));
-
-        // rows.remove(x);
-        // cols.remove(y);
-        // }
         // Place Majors
         placeStepMover(player, game, rows, cols, 3, 7);
         // Place Colonel
@@ -178,6 +172,11 @@ public class GameMove {
 
     }
 
+    /**
+     * Helper method to print the game board.
+     * 
+     * @param game associated game
+     */
     public static void printPieceLocations(Game game) {
         Player p1 = game.getPlayer(0);
         String[][] printArray = new String[10][10];
@@ -198,6 +197,11 @@ public class GameMove {
         }
     }
 
+    /**
+     * Helper method to prind board game row.
+     * 
+     * @param row board row
+     */
     public static void printRow(String[] row) {
         for (String i : row) {
             System.out.print(i);
@@ -206,6 +210,17 @@ public class GameMove {
         System.out.println();
     }
 
+    /**
+     * Method to place any StepMover Piece on the board.
+     * Unlike special pieces, can be moved into its own method
+     * 
+     * @param player associated player
+     * @param game   associated game
+     * @param rows   player's generated rows
+     * @param cols   player's generated columns
+     * @param n      number of pieces to place
+     * @param rank   rank (indicated pieces strength)
+     */
     public static void placeStepMover(Player player, Game game, List<Integer> rows, List<Integer> cols, int n,
             int rank) {
         for (int i = 0; i < n; i++) {
@@ -219,10 +234,6 @@ public class GameMove {
                 y = getRandomInt(0, cols.size() - 1);
                 square = game.getSquare(rows.get(x), cols.get(y));
             }
-            // while (square.canBeEntered()) {
-            // square = getRandomSquare(game, rows, cols);
-            // }
-            // assign a piece to the drawn coordinates
             try {
                 new StepMover(player, square, rank);
             } catch (IllegalArgumentException e) {
@@ -234,55 +245,104 @@ public class GameMove {
         }
     }
 
-    public static Square getRandomSquare(Game game, List<Integer> rows, List<Integer> cols) {
-        int x = getRandomInt(0, rows.size() - 1);
-        int y = getRandomInt(0, cols.size() - 1);
-        Square square = game.getSquare(rows.get(x), cols.get(y));
-        return square;
-    }
-
+    /**
+     * Helper method to get random values from player's rows and cols.
+     * 
+     * @param lower lower bound
+     * @param upper upper bound
+     * @return int
+     */
     public static int getRandomInt(int lower, int upper) {
-        // fixing seed for deterministic results
         Random random = new Random();
         return random.nextInt(upper - lower + 1) + lower;
     }
 
+    /**
+     * Getter for move attribute.
+     * 
+     * @return String
+     */
     public String getMove() {
         return this.move;
     }
 
+    /**
+     * Getter for current row attribute.
+     * 
+     * @return int
+     */
     public int getCurrentRow() {
         return this.currentRow;
     }
 
+    /**
+     * Getter for current column attribute.
+     * 
+     * @return int
+     */
     public int getCurrentCol() {
         return this.currentCol;
     }
 
+    /**
+     * Getter for target row attribute.
+     * 
+     * @return int
+     */
     public int getTargetRow() {
         return this.targetRow;
     }
 
+    /**
+     * Getter for target col attribute.
+     * 
+     * @return int
+     */
     public int getTargetCol() {
         return this.targetCol;
     }
 
+    /**
+     * Setter for move attribute.
+     * 
+     * @param move move string
+     */
     public void setMove(String move) {
         this.move = move;
     }
 
+    /**
+     * Setter for current row attribute.
+     * 
+     * @param currentRow row int
+     */
     public void setCurrentRow(int currentRow) {
         this.currentRow = currentRow;
     }
 
+    /**
+     * Setter for current col attribute.
+     * 
+     * @param currentCol col int
+     */
     public void setCurrentCol(int currentCol) {
         this.currentCol = currentCol;
     }
 
+    /**
+     * Setter for target row attribute.
+     * 
+     * @param targetRow row int
+     */
     public void setTargetRow(int targetRow) {
         this.targetRow = targetRow;
     }
 
+    /**
+     * Setter for target col attribute.
+     * 
+     * @param targetCol col int
+     */
     public void setTargetCol(int targetCol) {
         this.targetCol = targetCol;
     }
