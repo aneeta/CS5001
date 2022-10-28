@@ -10,8 +10,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import stratego.terminalgame.GameMove;
+import stratego.pieces.Piece;
+import stratego.pieces.StepMover;
 import stratego.Game;
 import stratego.Player;
+import stratego.Square;
 
 public class GameMoveTest {
 
@@ -51,5 +54,14 @@ public class GameMoveTest {
         assertEquals(
                 new ArrayList<Integer>(Arrays.asList(2, 2, 3, 3, 4, 4)),
                 testList);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testEmptyAttackBehaviour() {
+        Square testSquare1 = new Square(null, 0, 0, false);
+        Square testSquare2 = new Square(null, 0, 0, false);
+        Piece testPiece = new StepMover(null, testSquare2, 5);
+        testPiece.attack(testSquare1);
+        assertEquals(testPiece.getSquare(), testSquare1);
     }
 }
