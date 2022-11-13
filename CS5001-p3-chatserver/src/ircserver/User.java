@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class User {
@@ -15,7 +17,7 @@ public class User {
     private String nick;
     private String userName;
     private String realName;
-    private Map<String,Channel> channels;
+    private List<Channel> channels;
 
     private Socket socket;
     private InputStream inStream;
@@ -27,6 +29,7 @@ public class User {
     public User(Socket socket) throws IOException {
         isRegistered = false;
         this.socket = socket;
+        this.channels = new ArrayList<>();
         try {
             this.inStream = socket.getInputStream(); // get data from client on this input stream
             this.outStream = socket.getOutputStream(); // to send data back to the client on this stream
@@ -68,6 +71,18 @@ public class User {
         } catch (IOException ioe) {
             System.out.println("User:cleanup " + ioe.getMessage());
         }
+    }
+
+    public List<Channel> getChannels() {
+        return this.channels;
+    }
+
+    public void addChannel(Channel ch) {
+        this.channels.add(ch);
+    }
+
+    public void removeChannel(Channel ch) {
+        this.channels.remove(ch);
     }
 
 }

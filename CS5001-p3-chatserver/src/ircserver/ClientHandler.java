@@ -107,6 +107,7 @@ public class ClientHandler extends Thread {
                 returnMsg = chatServer.setNick(user, args[1]);
                 if (returnMsg != null) {
                     user.bufferedWriter.write(returnMsg);
+                    user.bufferedWriter.flush();
                 }
                 break;
             case "USER":
@@ -118,9 +119,14 @@ public class ClientHandler extends Thread {
                 break;
             case "QUIT":
                 returnMsg = chatServer.disconnectUser(user);
+                
                 break;
             case "JOIN":
                 returnMsg = chatServer.joinChannel(user, args[1]);
+                if (returnMsg != null) {
+                    user.bufferedWriter.write(returnMsg);
+                    user.bufferedWriter.flush();
+                }
                 break;
             case "PART":
                 returnMsg = chatServer.leaveChannel(user, args[1]);
@@ -129,10 +135,10 @@ public class ClientHandler extends Thread {
                 returnMsg = chatServer.privateMessage(user, args[1], msg[1]);
                 break;
             case "NAMES":
-                returnMsg = chatServer.listChannelUsers(args[1]);
+                returnMsg = chatServer.listChannelUsers(user, args[1]);
                 break;
             case "LIST":
-                returnMsg = chatServer.listChannels();
+                returnMsg = chatServer.listChannels(user);
                 break;
             case "TIME":
                 returnMsg = chatServer.getTime();
@@ -146,6 +152,10 @@ public class ClientHandler extends Thread {
                 break;
             case "PING":
                 returnMsg = chatServer.ping(args[1]); // TODO change to full message
+                if (returnMsg != null) {
+                    user.bufferedWriter.write(returnMsg);
+                    user.bufferedWriter.flush();
+                }
                 break;
         }
     }
