@@ -1,15 +1,10 @@
 package ircserver;
 
-import java.io.BufferedReader;
-import java.io.IOError;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 import ircserver.exceptions.DisconnectedException;
-import ircserver.commands.SupportedCommands;
 
 public class ClientHandler extends Thread {
 
@@ -17,14 +12,12 @@ public class ClientHandler extends Thread {
     private User user;
     private Socket client;
 
+
     public ClientHandler(Socket client, ChatServer chatServer) {
         this.client = client;
-        
+        this.chatServer = chatServer;
         try {
-            this.chatServer = chatServer;
             this.user = new User(client);
-            this.chatServer.addUser(this.user);
-
         } catch (IOException ioe) {
             System.out.println(
                 "Exception in ClientHandeler: " + ioe.getMessage()
@@ -98,66 +91,104 @@ public class ClientHandler extends Thread {
     // }
 
     public void mapCommand(String line) throws IOException {
-        String[] msg = line.split(":");
-        String[] args = msg[0].split(" ");
-        String returnMsg = null;
+        // String[] msg = line.split(":");
+        String[] args = line.split(" ");
+        String[] methodArgs = Arrays.copyOfRange(args, 1, args.length);
+        // String returnMsg = null;
 
         switch (args[0].toUpperCase()) {
             case "NICK":
-                returnMsg = chatServer.setNick(user, args[1]);
-                if (returnMsg != null) {
-                    user.bufferedWriter.write(returnMsg);
-                    user.bufferedWriter.flush();
-                }
+                chatServer.setNick(user, methodArgs);
                 break;
             case "USER":
-                returnMsg = chatServer.registerUser(user, args[1], msg[1]);
-                if (returnMsg != null) {
-                    user.bufferedWriter.write(returnMsg);
-                    user.bufferedWriter.flush();
-                }
+                chatServer.registerUser(user, methodArgs);
                 break;
             case "QUIT":
-                returnMsg = chatServer.disconnectUser(user);
+                chatServer.disconnectUser(user);
                 
                 break;
             case "JOIN":
-                returnMsg = chatServer.joinChannel(user, args[1]);
-                if (returnMsg != null) {
-                    user.bufferedWriter.write(returnMsg);
-                    user.bufferedWriter.flush();
-                }
+                chatServer.joinChannel(user, methodArgs);
                 break;
             case "PART":
-                returnMsg = chatServer.leaveChannel(user, args[1]);
+                chatServer.leaveChannel(user, methodArgs);
                 break;
             case "PRIVMSG":
-                returnMsg = chatServer.privateMessage(user, args[1], msg[1]);
+                chatServer.privateMessage(user, methodArgs);
                 break;
             case "NAMES":
-                returnMsg = chatServer.listChannelUsers(user, args[1]);
+                chatServer.listChannelUsers(user, methodArgs);
                 break;
             case "LIST":
-                returnMsg = chatServer.listChannels(user);
+                chatServer.listChannels(user);
                 break;
             case "TIME":
-                returnMsg = chatServer.getTime();
-                if (returnMsg != null) {
-                    user.bufferedWriter.write(returnMsg);
-                    user.bufferedWriter.flush();
-                }
+                chatServer.getTime(user);
                 break;
             case "INFO":
-                returnMsg = chatServer.getInfo();
+                chatServer.getInfo(user);
                 break;
             case "PING":
-                returnMsg = chatServer.ping(args[1]); // TODO change to full message
-                if (returnMsg != null) {
-                    user.bufferedWriter.write(returnMsg);
-                    user.bufferedWriter.flush();
-                }
+                chatServer.ping(user, methodArgs);
                 break;
         }
+
+        // switch (args[0].toUpperCase()) {
+        //     case "NICK":
+        //         returnMsg = chatServer.setNick(user, args[1]);
+        //         if (returnMsg != null) {
+        //             user.bufferedWriter.write(returnMsg);
+        //             user.bufferedWriter.flush();
+        //         }
+        //         break;
+        //     case "USER":
+        //         returnMsg = chatServer.registerUser(user, args[1], msg[1]);
+        //         if (returnMsg != null) {
+        //             user.bufferedWriter.write(returnMsg);
+        //             user.bufferedWriter.flush();
+        //         }
+        //         break;
+        //     case "QUIT":
+        //         returnMsg = chatServer.disconnectUser(user);
+                
+        //         break;
+        //     case "JOIN":
+        //         returnMsg = chatServer.joinChannel(user, args[1]);
+        //         if (returnMsg != null) {
+        //             user.bufferedWriter.write(returnMsg);
+        //             user.bufferedWriter.flush();
+        //         }
+        //         break;
+        //     case "PART":
+        //         returnMsg = chatServer.leaveChannel(user, args[1]);
+        //         break;
+        //     case "PRIVMSG":
+        //         returnMsg = chatServer.privateMessage(user, args[1], msg[1]);
+        //         break;
+        //     case "NAMES":
+        //         returnMsg = chatServer.listChannelUsers(user, args[1]);
+        //         break;
+        //     case "LIST":
+        //         returnMsg = chatServer.listChannels(user);
+        //         break;
+        //     case "TIME":
+        //         returnMsg = chatServer.getTime();
+        //         if (returnMsg != null) {
+        //             user.bufferedWriter.write(returnMsg);
+        //             user.bufferedWriter.flush();
+        //         }
+        //         break;
+        //     case "INFO":
+        //         returnMsg = chatServer.getInfo();
+        //         break;
+        //     case "PING":
+        //         returnMsg = chatServer.ping(args[1]); // TODO change to full message
+        //         if (returnMsg != null) {
+        //             user.bufferedWriter.write(returnMsg);
+        //             user.bufferedWriter.flush();
+        //         }
+        //         break;
+        // }
     }
 
 }

@@ -10,17 +10,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ChatServer {
     private Map<String,Channel> channels;
     private Map<String, User> users;
-    private String errorMsgTemplate; // TODO
+    private String replyTemplate;
+    private String errorTemplate;
 
     private String serverName;
     private int port;
     private ServerSocket socket;
+
+    // private final Map<String, Object> commandMapping = Map.of(
+    //     "NICK", this::setNick,
+    //     "USER", this::registerUser,
+    //     "QUIT", this::disconnectUser,
+    //     "JOIN", this::joinChannel,
+    //     "PART", this::leaveChannel,
+    //     "PRIVMSG", this::privateMessage,
+    //     "NAMES", this::listChannelUsers,
+    //     "LIST", this::listChannels,
+    //     "TIME", this::getTime,
+    //     "INFO", this::getInfo
+    // );
 
 
     public ChatServer(int port, String serverName) throws IOException {
@@ -29,68 +45,59 @@ public class ChatServer {
         this.socket = new ServerSocket(port);
         this.channels = new HashMap<>();
         this.users = new HashMap<>();
+        this.replyTemplate = String.format(":%s", serverName) + " %03d %s %s\n";
+        this.errorTemplate = String.format(":%s 400 ", serverName) + "%s :%s\n";
     }
 
     public ServerSocket getServerSocket() {
         return this.socket;
     }
 
-    public void addUser(User user) {
-        this.users.put(user.getNick(), user);
+    public static void write(User user, String msg) throws IOException {
+        if (msg != null) {
+            user.bufferedWriter.write(msg);
+            user.bufferedWriter.flush();
+        }
     }
 
-    public String setNick(User user, String nick) {
-        String returnMsg = null;
+    public void setNick(User user, String[] args) throws IOException {
+        String nick = args[0];
         try {
             validateNick(nick);
             user.setNick(nick);
-        } catch (Exception e) {
-            returnMsg = String.format(":%s 400 * :Invalid nickname\n", serverName);
-        }
-        return returnMsg;
-    }
-
-    public void validateNick(String nick) throws IllegalArgumentException {
-        Pattern p = Pattern.compile("^[a-zA-Z_]\\w{0,8}$");
-        Matcher m = p.matcher(nick);
-        if (!m.matches()) {
-            throw new IllegalArgumentException();
+        } catch (IllegalArgumentException e) {
+            String errorMsg = getErrorMsg(user, "Invalid nickname");
+            write(user, errorMsg);
+            // returnMsg = String.format(":%s 400 * :Invalid nickname\n", serverName);
         }
     }
 
-    public String registerUser(User user, String userName, String realName) {
-        String returnMsg;
+    public void registerUser(User user, String[] args) throws IOException {
         if (user.isRegistered()) {
-            returnMsg = String.format(
-                ":%s 400 * :You are already registered\n", serverName);
-            return returnMsg;
+            String errorMsg = getErrorMsg(user, "You are already registered");
+            write(user, errorMsg);
+            return;
         }
         try {
+            String userName = args[0];
+            String realName = getTextAfterColon(args);
             validateUserName(userName);
             user.register(userName, realName);
             addUser(user);
-            returnMsg = String.format(
-                ":%s 001 %s :Welcome to the IRC network, %s\n",
-                serverName,
-                user.getNick(),
-                user.getNick()
-            );
-            return returnMsg;
-        } catch (Exception e) {
-            returnMsg = String.format(":%s 400 * :Invalid arguments to USER command\n", serverName);
-            return returnMsg;
+            String returnMsgText = String.format(":Welcome to the IRC network, %s", user.getNick());
+            String returnMsg = String.format(replyTemplate, 1, user.getNick(), returnMsgText);
+            write(user, returnMsg);
+            
+        } catch ( IndexOutOfBoundsException e) {
+            String errorMsg = getErrorMsg(user, "Not enough arguments");
+            write(user, errorMsg);
+        } catch (IllegalArgumentException e) {
+            String errorMsg = getErrorMsg(user, "Invalid arguments to USER command");
+            write(user, errorMsg);
         }
     }
 
-    public void validateUserName(String username) throws IllegalArgumentException {
-        Pattern p = Pattern.compile("^\\S+$");
-        Matcher m = p.matcher(username);
-        if (!m.matches()) {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    public String disconnectUser(User user) throws IOException {
+    public void disconnectUser(User user) throws IOException {
         String returnMsg = null;
         if (user.isRegistered()) {
             returnMsg = String.format(
@@ -99,24 +106,24 @@ public class ChatServer {
 
         for (Channel ch : user.getChannels()) {
             ch.removeUser(user);
-            ch.message(returnMsg);
-        }
-
-        if (returnMsg != null) {
-            user.bufferedWriter.write(returnMsg);
-            user.bufferedWriter.flush();
+            // ch.message(returnMsg);
         }
         
+        for (User u : users.values()) {
+            write(u, returnMsg);
+        }
+        users.remove(user.getNick(), user);
         user.cleanup();
-        return returnMsg;
     }
 
-    public String joinChannel(User user, String channelName) throws IOException {
+    public void joinChannel(User user, String[] args) throws IOException {
         if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
+            String errorMsg = getErrorMsg(user, "You need to register first");
+            write(user, errorMsg);
+            return;
         }
         try {
+            String channelName = args[0];
             validateChannelName(channelName);
             Channel ch = getOrCreateChannel(channelName);
             ch.addUser(user);
@@ -129,14 +136,182 @@ public class ChatServer {
             ch.message(returnMsg);
 
         } catch (IllegalArgumentException e) {
-            return String.format(
-                ":%s 400 * :Invalid channel name\n", serverName);
+            String errorMsg = getErrorMsg(user, "Invalid channel name");
+            write(user, errorMsg);
         }
-        
-        return null;
     }
 
-    public void validateChannelName(String channelName) throws IllegalArgumentException {
+    public void leaveChannel(User user, String[] args) throws IOException {
+        if (!user.isRegistered()) {
+            String errorMsg = getErrorMsg(user, "You need to register first");
+            write(user, errorMsg);
+            return;
+        }
+
+        String channelName = args[0];
+        Channel ch = channels.get(channelName);
+
+        if (ch == null) {
+            String errorMsg = getErrorMsg(user, "No channel exists with that name");
+            write(user, errorMsg);
+            return;
+        }
+        ch.message(
+            String.format(":%s PART %s\n", user.getNick(), channelName)
+        );
+        ch.removeUser(user);
+        user.removeChannel(ch);
+        if (!ch.hasUsers()) {
+            channels.remove(channelName, ch);
+        }
+    }
+
+    public void privateMessage(User user, String[] args) throws IOException {
+        
+        if (!user.isRegistered()) {
+            String errorMsg = getErrorMsg(user, "You need to register first");
+            write(user, errorMsg);
+            return;
+        }
+
+        try {
+            String target = args[0];
+            String msg = getTextAfterColon(args);
+            String returnMsg = String.format(
+            ":%s PRIVMSG %s :%s\n", user.getNick(), target, msg);
+
+            if (target.charAt(0) == '#') {
+                if (!channelExists(target)) {
+                    String errorMsg = getErrorMsg(user, "No channel exists with that name");
+                    write(user, errorMsg);
+                    return;
+                }
+                Channel ch = channels.get(target);
+                ch.message(String.format(returnMsg, target));
+            } else {
+                User targetUser = users.get(target);
+                if (targetUser == null) {
+                    String errorMsg = getErrorMsg(user, "No user exists with that name");
+                    write(user, errorMsg);
+                    return;
+                }
+                write(targetUser, returnMsg);
+            }
+        } catch (Exception e) {
+            String errorMsg = getErrorMsg(user, "Invalid arguments to PRIVMSG command");
+            write(user, errorMsg);
+        }
+    }
+
+    public void listChannelUsers(User user, String[] args) throws IOException {
+        if (!user.isRegistered()) {
+            String errorMsg = getErrorMsg(user, "You need to register first");
+            write(user, errorMsg);
+            return;
+        }
+        String channel = args[0];
+        if (!channelExists(channel)) {
+            String errorMsg = getErrorMsg(user, "No channel exists with that name");
+            write(user, errorMsg);
+            return;
+        }
+        String returnMsgText = String.format(
+            "= %s :%s",
+            channel,
+            String.join(" ", users.values().stream().map(User::getNick).collect(Collectors.toList())));
+        String returnMsg = String.format(replyTemplate, 353, user.getNick(), returnMsgText);
+        write(user, returnMsg);
+    }
+
+    public void listChannels(User user) throws IOException {
+        if (!user.isRegistered()) {
+            String errorMsg = getErrorMsg(user, "You need to register first");
+            write(user, errorMsg);
+            return;
+        }
+        String returnMsg = "";
+        for (Channel ch : this.channels.values()) {
+            returnMsg += String.format(
+                replyTemplate,
+                322,
+                user.getNick(),
+                ch.getName());
+        }
+        returnMsg += String.format(
+            replyTemplate,
+            322,
+            user.getNick(),
+            ":End of LIST");
+        write(user, returnMsg);
+    }
+
+    public void getTime(User user) throws IOException {
+        String  returnMsg = String.format(
+            replyTemplate,
+            391,
+            user.getNick(),
+            LocalDateTime.now()
+        );
+        write(user, returnMsg);
+    }
+
+    public void getInfo(User user) throws IOException {
+        String  returnMsg = String.format(
+            replyTemplate,
+            371,
+            user.getNick(),
+            "This is a IRC Chat Sever written by a CS5001 student."
+        );
+        write(user, returnMsg);
+        
+    }
+
+    public void ping(User user, String[] args) throws IOException {
+        String msg = String.join(" ", args);
+        write(user, String.format("PONG %s\n", msg));
+    }
+
+    // public void runCommand(User user, String command) {
+    //     String[] args = command.split(" ");
+    //     String command = args[0];
+    //     String[] methodArgs = Arrays.copyOfRange(args, 1, args.length-1);
+    //     Function method = commandMapping.get(command);
+    //     method.apply(user, methodArgs);
+    // }
+
+    String getErrorMsg(User user, String msg) {
+        return String.format(
+            errorTemplate, user.getNick(), msg);
+    }
+
+    String getTextAfterColon(String[] args) {
+        String[] colonSplit = String.join(" ", args).split(":");
+        return colonSplit[1];
+    }
+
+    
+
+    void addUser(User user) {
+        this.users.put(user.getNick(), user);
+    }
+
+    void validateNick(String nick) throws IllegalArgumentException {
+        Pattern p = Pattern.compile("^[a-zA-Z_]\\w{0,8}$");
+        Matcher m = p.matcher(nick);
+        if (!m.matches()) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    void validateUserName(String username) throws IllegalArgumentException {
+        Pattern p = Pattern.compile("^\\S+$");
+        Matcher m = p.matcher(username);
+        if (!m.matches()) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    void validateChannelName(String channelName) throws IllegalArgumentException {
         Pattern p = Pattern.compile("^#\\w+$");
         Matcher m = p.matcher(channelName);
         if (!m.matches()) {
@@ -144,7 +319,7 @@ public class ChatServer {
         }
     }
 
-    public Channel getOrCreateChannel(String channelName) {
+    Channel getOrCreateChannel(String channelName) {
         Channel ch = channels.get(channelName);
         if (!channelExists(channelName)) {
             ch = new ircserver.Channel(channelName);
@@ -153,124 +328,11 @@ public class ChatServer {
         return ch;
     }
 
-    public String leaveChannel(User user, String channelName) throws IOException {
-        if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
-        }
-        Channel ch = channels.get(channelName);
-        if (ch == null) {
-            return String.format(":%s 400 * :No channel exists with that name", serverName);
-        }
-        ch.message(
-            String.format(":%s PART %s", user.getNick(), channelName)
-        );
-        ch.removeUser(user);
-        user.removeChannel(ch);
-        if (!ch.hasUsers()) {
-            channels.remove(ch);
-        }
-        return null;
-    }
-
-    public String privateMessage(User user, String target, String msg) throws IOException {
-        String returnMsg = String.format(
-            ":%s PRIVMSG %s :", user.getNick());
-        returnMsg += msg;
-        if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
-        }
-        if (target.charAt(0) == '#') {
-            if (!channelExists(target)) {
-                return String.format(
-                    ":%s 400 * :No channel exists with that name",
-                    serverName
-                );
-            }
-            Channel ch = channels.get(target);
-            ch.message(String.format(returnMsg, target));
-        } else {
-            User targetUser = users.get(target);
-            if (targetUser == null) {
-                return String.format(
-                    ":%s 400 * :No user exists with that name",
-                    serverName
-                );
-            }
-
-            targetUser.bufferedWriter.write(String.format(returnMsg, target));
-            targetUser.bufferedWriter.flush();
-
-        }
-        return null;
-
-    }
-
-    public Boolean channelExists(String channelName) {
+    Boolean channelExists(String channelName) {
         Channel ch = channels.get(channelName);
         if (ch == null) {
             return false;
         }
         return true;
     }
-
-    public String listChannelUsers(User user, String channel) {
-        if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
-        }
-        // TODO
-        return null;
-
-    }
-
-    public String listChannels(User user) {
-        if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
-        }
-        String returnMsg = "";
-        String returnMsgBase = String.format(
-            ":%s 322 %s %s\n",
-            serverName,
-            user.getNick()
-            );
-        for (Channel ch : this.channels.values()) {
-            returnMsg += String.format(returnMsgBase, ch.getName());
-        }
-        returnMsg += String.format(returnMsgBase, ":End of LIST");
-        return returnMsg;
-    }
-
-    public String getTime() {
-        return String.format(
-            ":%s 391 * :%s\n",
-            serverName,
-            LocalDateTime.now()
-        );
-    }
-
-    public String getInfo() {
-        return String.format(
-            ":%s 371 * :%s\n",
-            serverName,
-            "This is a IRC Chat Sever written by a CS5001 student."
-        );
-    }
-
-    public String ping(String msg) {
-        return String.format(
-            "PONG %s\n", msg
-        );
-    }
-
-    public String checkRegistered(User user) {
-        if (!user.isRegistered()) {
-            return String.format(
-                ":%s 400 * :You need to register first\n", serverName);
-        }
-        return null;
-    }
-
 }
