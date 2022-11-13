@@ -28,6 +28,7 @@ public class User {
 
     public User(Socket socket) throws IOException {
         isRegistered = false;
+        nick = "*";
         this.socket = socket;
         this.channels = new ArrayList<>();
         try {
