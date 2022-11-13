@@ -1,7 +1,7 @@
-package ircserver;
-
 import java.io.IOException;
 import java.net.Socket;
+
+import ircserver.*;
 
 public class IrcServerMain {
     public static void main(String[] args) {
@@ -11,10 +11,15 @@ public class IrcServerMain {
         }
 
         String serverName = args[0];
-        int port = Integer.parseInt(args[1]);
+        int port = 0;
 
-        if ((port < 0) || (port > 65535)) {
-            // invalid port number 
+        try {
+            port = Integer.parseInt(args[1]);
+            if ((port < 0) || (port > 65535)) {
+                // invalid port number
+                showUsageAndExit();
+            }
+        } catch (Exception e) {
             showUsageAndExit();
         }
 

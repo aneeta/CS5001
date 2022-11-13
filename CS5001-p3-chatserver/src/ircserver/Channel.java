@@ -25,9 +25,14 @@ public class Channel {
         users.remove(user);
     }
 
+    public Boolean hasUsers() {
+        return (users.size() > 0);
+    }
+
     public void message(String msg) throws IOException {
         for (User u : users) {
             u.bufferedWriter.write(msg);
+            u.bufferedWriter.flush();
         }
     }
 }
