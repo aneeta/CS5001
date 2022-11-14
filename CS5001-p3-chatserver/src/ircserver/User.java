@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class User {
     private Boolean isRegistered;
@@ -22,8 +21,8 @@ public class User {
     private Socket socket;
     private InputStream inStream;
     private OutputStream outStream;
-    public BufferedReader bufferedReader;
-    public BufferedWriter bufferedWriter;
+    private BufferedReader bufferedReader;
+    private BufferedWriter bufferedWriter;
     
 
     public User(Socket socket) throws IOException {
@@ -43,6 +42,14 @@ public class User {
         }
     }
 
+    public BufferedReader getReader() {
+        return bufferedReader;
+    }
+
+    public BufferedWriter getWriter() {
+        return bufferedWriter;
+    }
+
     public void setNick(String nick) {
         this.nick = nick;
     }
@@ -59,6 +66,14 @@ public class User {
 
     public String getNick() {
         return this.nick;
+    }
+
+    public String getUserName() {
+        return this.userName;
+    }
+
+    public String getRealName() {
+        return this.realName;
     }
 
     public void cleanup() {
