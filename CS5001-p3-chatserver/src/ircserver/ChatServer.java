@@ -21,7 +21,8 @@ public class ChatServer {
 
     /**
      * ChatServer constructor.
-     * @param port server port
+     * 
+     * @param port       server port
      * @param serverName server name
      * @throws IOException
      */
@@ -31,15 +32,16 @@ public class ChatServer {
         this.users = new HashMap<>();
         this.replyTemplate = String.format(":%s", serverName) + " %03d %s %s\n";
         this.errorTemplate = String.format(
-            ":%s %d ",
-            serverName,
-            Return.ERROR.getCode()) + "%s :%s\n";
+                ":%s %d ",
+                serverName,
+                Return.ERROR.getCode()) + "%s :%s\n";
     }
 
     /**
      * Utility method to write non-empty output to a given user.
+     * 
      * @param user user
-     * @param msg output string
+     * @param msg  output string
      * @throws IOException
      */
     public static void write(User user, String msg) throws IOException {
@@ -51,6 +53,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the NICK command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throwsQUIT IOException
@@ -72,6 +75,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the USER command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -92,13 +96,13 @@ public class ChatServer {
             user.register(userName, realName);
             addUser(user);
             String returnMsgText = String.format(
-                ":Welcome to the IRC network, %s",
-                user.getNick());
+                    ":Welcome to the IRC network, %s",
+                    user.getNick());
             String returnMsg = String.format(
-                replyTemplate,
-                Return.NICK.getCode(),
-                user.getNick(),
-                returnMsgText);
+                    replyTemplate,
+                    Return.NICK.getCode(),
+                    user.getNick(),
+                    returnMsgText);
             write(user, returnMsg);
         } catch (IndexOutOfBoundsException e) {
             String errorMsg = getErrorMsg(user, "Not enough arguments");
@@ -111,6 +115,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the QUIT command.
+     * 
      * @param user user
      * @throws IOException
      */
@@ -118,7 +123,7 @@ public class ChatServer {
         String returnMsg = null;
         if (user.isRegistered()) {
             returnMsg = String.format(
-                ":%s QUIT\n", user.getNick());
+                    ":%s QUIT\n", user.getNick());
         }
         // remove user from channels
         for (Channel ch : user.getChannels()) {
@@ -135,6 +140,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the JOIN command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -154,10 +160,9 @@ public class ChatServer {
             ch.addUser(user);
             user.addChannel(ch);
             String returnMsg = String.format(
-                ":%s JOIN %s\n",
-                user.getNick(),
-                channelName
-                );
+                    ":%s JOIN %s\n",
+                    user.getNick(),
+                    channelName);
             ch.message(returnMsg);
 
         } catch (IllegalArgumentException e) {
@@ -168,6 +173,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the PART command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -188,8 +194,7 @@ public class ChatServer {
             return;
         }
         ch.message(
-            String.format(":%s PART %s\n", user.getNick(), channelName)
-        );
+                String.format(":%s PART %s\n", user.getNick(), channelName));
         ch.removeUser(user);
         user.removeChannel(ch);
         // if no one is left, close channel
@@ -200,6 +205,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the PRIVMSG command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -216,7 +222,7 @@ public class ChatServer {
             String target = args[0];
             String msg = getTextAfterColon(args);
             String returnMsg = String.format(
-            ":%s PRIVMSG %s :%s\n", user.getNick(), target, msg);
+                    ":%s PRIVMSG %s :%s\n", user.getNick(), target, msg);
 
             if (target.charAt(0) == '#') {
                 // Sending message to a channel
@@ -245,6 +251,7 @@ public class ChatServer {
 
     /**
      * Method corresponding to the NAMES command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -262,19 +269,20 @@ public class ChatServer {
             return;
         }
         String returnMsgText = String.format(
-            "= %s :%s",
-            channel,
-            String.join(" ", users.values().stream().map(User::getNick).collect(Collectors.toList())));
+                "= %s :%s",
+                channel,
+                String.join(" ", users.values().stream().map(User::getNick).collect(Collectors.toList())));
         String returnMsg = String.format(
-            replyTemplate,
-            Return.CHANNELS.getCode(),
-            user.getNick(),
-            returnMsgText);
+                replyTemplate,
+                Return.CHANNELS.getCode(),
+                user.getNick(),
+                returnMsgText);
         write(user, returnMsg);
     }
 
     /**
      * Method corresponding to the LIST command.
+     * 
      * @param user user
      * @throws IOException
      */
@@ -287,51 +295,52 @@ public class ChatServer {
         String returnMsg = "";
         for (Channel ch : this.channels.values()) {
             returnMsg += String.format(
-                replyTemplate,
-                Return.LIST.getCode(),
-                user.getNick(),
-                ch.getName());
+                    replyTemplate,
+                    Return.LIST.getCode(),
+                    user.getNick(),
+                    ch.getName());
         }
         returnMsg += String.format(
-            replyTemplate,
-            Return.LIST_END.getCode(),
-            user.getNick(),
-            ":End of LIST");
+                replyTemplate,
+                Return.LIST_END.getCode(),
+                user.getNick(),
+                ":End of LIST");
         write(user, returnMsg);
     }
 
     /**
      * Method corresponding to the TIME command.
+     * 
      * @param user user
      * @throws IOException
      */
     public void getTime(User user) throws IOException {
-        String  returnMsg = String.format(
-            replyTemplate,
-            Return.TIME.getCode(),
-            user.getNick(),
-            LocalDateTime.now()
-        );
+        String returnMsg = String.format(
+                replyTemplate,
+                Return.TIME.getCode(),
+                user.getNick(),
+                ":" + LocalDateTime.now());
         write(user, returnMsg);
     }
 
     /**
      * Method corresponding to the INFO command.
+     * 
      * @param user user
      * @throws IOException
      */
     public void getInfo(User user) throws IOException {
-        String  returnMsg = String.format(
-            replyTemplate,
-            Return.INFO.getCode(),
-            user.getNick(),
-            "This is a IRC Chat Sever written by a CS5001 student."
-        );
+        String returnMsg = String.format(
+                replyTemplate,
+                Return.INFO.getCode(),
+                user.getNick(),
+                ":This is a IRC Chat Sever written by a CS5001 student.");
         write(user, returnMsg);
     }
 
     /**
      * Method corresponding to the PING command.
+     * 
      * @param user user
      * @param args array of arguments passed after the command
      * @throws IOException
@@ -343,18 +352,20 @@ public class ChatServer {
 
     /**
      * Utility method to get Error string.
+     * 
      * @param user user
-     * @param msg error message
+     * @param msg  error message
      * @return String
      */
     public String getErrorMsg(User user, String msg) {
         return String.format(
-            errorTemplate, user.getNick(), msg);
+                errorTemplate, user.getNick(), msg);
     }
 
     /**
      * Utility method to get text after ":".
      * Needed because of chat input format.
+     * 
      * @param args array of arguments passed after the command
      * @return String
      */
@@ -365,6 +376,7 @@ public class ChatServer {
 
     /**
      * Utility method to add update the users list.
+     * 
      * @param user user
      */
     public void addUser(User user) {
@@ -374,8 +386,9 @@ public class ChatServer {
     /**
      * Utility method to validate a string base on a pattern.
      * Needed to check that nick, channel, and username meet the rules.
+     * 
      * @param string target string
-     * @param regex patter
+     * @param regex  patter
      * @throws IllegalArgumentException
      */
     public static void validateString(String string, String regex) throws IllegalArgumentException {
@@ -388,6 +401,7 @@ public class ChatServer {
 
     /**
      * Utility method to get channel object baset on channel name.
+     * 
      * @param channelName channel name string
      * @return Channel
      */
@@ -402,6 +416,7 @@ public class ChatServer {
 
     /**
      * Utility method to check if channel exists.
+     * 
      * @param channelName channel name string
      * @return Boolean
      */
@@ -415,6 +430,7 @@ public class ChatServer {
 
     /**
      * Getter method for Chat's Server Socket.
+     * 
      * @return ServerSocket
      */
     public ServerSocket getServerSocket() {
