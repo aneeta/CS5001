@@ -6,13 +6,20 @@ import java.util.Arrays;
 
 import ircserver.exceptions.DisconnectedException;
 
+/**
+ * Class to handle requests from the connected client(s).
+ */
 public class ClientHandler extends Thread {
 
     private ChatServer chatServer;
     private User user;
     private Socket client;
 
-
+    /**
+     * ClientHandler constructor.
+     * @param client client connection
+     * @param chatServer chat server object
+     */
     public ClientHandler(Socket client, ChatServer chatServer) {
         this.client = client;
         this.chatServer = chatServer;
@@ -25,7 +32,9 @@ public class ClientHandler extends Thread {
         }
     }
 
-    // run method is invoked when the Thread's start method (ch.start(); in Server class) is invoked
+    /**
+     * Method to listen to client connection and clean up on disconnect.
+     */
     public void run() {
         System.out.println("new ConnectionHandler thread started .... ");
         try {
@@ -37,22 +46,33 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /** Method to wait for user input & act on it.
+     * @throws IOException
+     * @throws DisconnectedException
+     */
     public void handleCommand() throws IOException, DisconnectedException {
         while (client.isConnected()) {
+            // wait until client gives an input
             String line = null;
             while (line == null) {
-                line = user.getReader().readLine(); // get data from client over socket
+                // get data from client over socket
+                line = user.getReader().readLine();
             }
-            mapCommand(line);
+            // act according to the command
+            runCommand(line);
         }
     }
 
-    public void mapCommand(String line) throws IOException {
-        // String[] msg = line.split(":");
+    /** Method to map input command to the right action.
+     * @param line client raw input
+     * @throws IOException
+     */
+    public void runCommand(String line) throws IOException {
+        // parse input line
         String[] args = line.split(" ");
         String[] methodArgs = Arrays.copyOfRange(args, 1, args.length);
-        // String returnMsg = null;
 
+        // call a method corresponding to the parsed command
         switch (args[0].toUpperCase()) {
             case "NICK":
                 chatServer.setNick(user, methodArgs);
@@ -86,6 +106,9 @@ public class ClientHandler extends Thread {
                 break;
             case "PING":
                 chatServer.ping(user, methodArgs);
+                break;
+            default:
+                // unrecognized command - ignore
                 break;
         }
     }

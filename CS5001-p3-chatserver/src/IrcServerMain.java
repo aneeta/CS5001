@@ -4,8 +4,14 @@ import java.net.Socket;
 import ircserver.ChatServer;
 import ircserver.ClientHandler;
 
-
+/**
+ * Class cntaining Main method.
+ */
 public class IrcServerMain {
+
+    /** Main method - start the ICR server.
+     * @param args input arg@id:vscjava.vscode-java-packuments (port and server name)
+     */
     public static void main(String[] args) {
         if ((args.length < 2)) {
             // not enough arguments supplied
@@ -13,7 +19,10 @@ public class IrcServerMain {
         }
 
         String serverName = args[0];
-        int port = 0;
+        int/** Method to wait for user input & act on it.
+        * @throws IOException
+        * @throws DisconnectedException
+        */ port = 0;
 
         try {
             port = Integer.parseInt(args[1]);
@@ -30,7 +39,7 @@ public class IrcServerMain {
             // so I would have to decide of a hard limit on
             // connections to handle at once
             while (true) {
-                // waits until client requests a connection, then returns connection (socket)
+                // return a connection upon client request
                 try {
                     Socket connection = server.getServerSocket().accept();
                     System.out.println("Server got new connection request from " + connection.getInetAddress());
@@ -47,6 +56,9 @@ public class IrcServerMain {
         }
     }
 
+    /**
+     * Utility method to display help when arguments are passed incorrectly.
+     */
     public static void showUsageAndExit() {
         System.out.println("Usage: java IrcServerMain <server_name> <port>");
         System.exit(1);
