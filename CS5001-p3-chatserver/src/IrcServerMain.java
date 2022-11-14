@@ -1,7 +1,9 @@
 import java.io.IOException;
 import java.net.Socket;
 
-import ircserver.*;
+import ircserver.ChatServer;
+import ircserver.ClientHandler;
+
 
 public class IrcServerMain {
     public static void main(String[] args) {
@@ -15,10 +17,6 @@ public class IrcServerMain {
 
         try {
             port = Integer.parseInt(args[1]);
-            if ((port < 0) || (port > 65535)) {
-                // invalid port number
-                showUsageAndExit();
-            }
         } catch (Exception e) {
             showUsageAndExit();
         }

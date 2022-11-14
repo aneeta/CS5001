@@ -31,8 +31,7 @@ public class Channel {
 
     public void message(String msg) throws IOException {
         for (User u : users) {
-            u.bufferedWriter.write(msg);
-            u.bufferedWriter.flush();
+            ChatServer.write(u, msg);
         }
     }
 }

@@ -2,46 +2,22 @@ package ircserver;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
-// import java.nio.channels.Channel;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ChatServer {
-    private Map<String,Channel> channels;
+    private Map<String, Channel> channels;
     private Map<String, User> users;
     private String replyTemplate;
     private String errorTemplate;
 
-    private String serverName;
-    private int port;
     private ServerSocket socket;
 
-    // private final Map<String, Object> commandMapping = Map.of(
-    //     "NICK", this::setNick,
-    //     "USER", this::registerUser,
-    //     "QUIT", this::disconnectUser,
-    //     "JOIN", this::joinChannel,
-    //     "PART", this::leaveChannel,
-    //     "PRIVMSG", this::privateMessage,
-    //     "NAMES", this::listChannelUsers,
-    //     "LIST", this::listChannels,
-    //     "TIME", this::getTime,
-    //     "INFO", this::getInfo
-    // );
-
-
     public ChatServer(int port, String serverName) throws IOException {
-        this.port = port;
-        this.serverName = serverName;
         this.socket = new ServerSocket(port);
         this.channels = new HashMap<>();
         this.users = new HashMap<>();
@@ -55,8 +31,8 @@ public class ChatServer {
 
     public static void write(User user, String msg) throws IOException {
         if (msg != null) {
-            user.bufferedWriter.write(msg);
-            user.bufferedWriter.flush();
+            user.getWriter().write(msg);
+            user.getWriter().flush();
         }
     }
 
@@ -88,7 +64,7 @@ public class ChatServer {
             String returnMsg = String.format(replyTemplate, 1, user.getNick(), returnMsgText);
             write(user, returnMsg);
             
-        } catch ( IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             String errorMsg = getErrorMsg(user, "Not enough arguments");
             write(user, errorMsg);
         } catch (IllegalArgumentException e) {
@@ -106,9 +82,7 @@ public class ChatServer {
 
         for (Channel ch : user.getChannels()) {
             ch.removeUser(user);
-            // ch.message(returnMsg);
         }
-        
         for (User u : users.values()) {
             write(u, returnMsg);
         }
@@ -167,7 +141,7 @@ public class ChatServer {
     }
 
     public void privateMessage(User user, String[] args) throws IOException {
-        
+
         if (!user.isRegistered()) {
             String errorMsg = getErrorMsg(user, "You need to register first");
             write(user, errorMsg);
@@ -239,7 +213,7 @@ public class ChatServer {
         }
         returnMsg += String.format(
             replyTemplate,
-            322,
+            323,
             user.getNick(),
             ":End of LIST");
         write(user, returnMsg);
@@ -263,21 +237,12 @@ public class ChatServer {
             "This is a IRC Chat Sever written by a CS5001 student."
         );
         write(user, returnMsg);
-        
     }
 
     public void ping(User user, String[] args) throws IOException {
         String msg = String.join(" ", args);
         write(user, String.format("PONG %s\n", msg));
     }
-
-    // public void runCommand(User user, String command) {
-    //     String[] args = command.split(" ");
-    //     String command = args[0];
-    //     String[] methodArgs = Arrays.copyOfRange(args, 1, args.length-1);
-    //     Function method = commandMapping.get(command);
-    //     method.apply(user, methodArgs);
-    // }
 
     String getErrorMsg(User user, String msg) {
         return String.format(
