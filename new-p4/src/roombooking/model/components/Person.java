@@ -7,21 +7,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Person implements Serializable {
 
     private String fullName;
     private String email;
-    private List<Booking> bookings;
+    private int id;
+    // private List<Booking> bookings;
 
     @JsonCreator
-    public Person(@JsonProperty("name") String name, @JsonProperty("email") String email)
+    public Person(@JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("id") int id)
             throws IllegalArgumentException {
         validateEmail(email);
         this.fullName = name;
         this.email = email;
-        this.bookings = new ArrayList<>();
+        this.id = id;
     }
 
     public void validateEmail(String name) throws IllegalArgumentException {
@@ -32,17 +34,17 @@ public class Person implements Serializable {
         }
     }
 
-    public void addBooking(Booking booking) {
-        this.bookings.add(booking);
-    }
+    // public void addBooking(Booking booking) {
+    // this.bookings.add(booking);
+    // }
 
-    public void removeBooking(Booking booking) {
-        this.bookings.remove(booking);
-    }
+    // public void removeBooking(Booking booking) {
+    // this.bookings.remove(booking);
+    // }
 
-    public List<Booking> getBookings() {
-        return this.bookings;
-    }
+    // public List<Booking> getBookings() {
+    // return this.bookings;
+    // }
 
     public String getName() {
         return this.fullName;
@@ -54,6 +56,10 @@ public class Person implements Serializable {
 
     public String toDisplay() {
         return getName() + " (" + getEmail() + ")";
+    }
+
+    public int getId() {
+        return this.id;
     }
 
 }

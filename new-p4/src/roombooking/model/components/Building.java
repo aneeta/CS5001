@@ -8,32 +8,35 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Building implements Serializable {
 
-    private List<Room> rooms;
+    // private List<Room> rooms;
     private String name;
     private String address;
+    private int id;
 
     @JsonCreator
-    public Building(@JsonProperty("name") String name, @JsonProperty("address") String address) {
+    public Building(@JsonProperty("name") String name, @JsonProperty("address") String address,
+            @JsonProperty("id") int id) {
         this.name = name;
         this.address = address;
-        this.rooms = new ArrayList<>();
+        this.id = id;
     }
 
-    public void addRoom(Room room) {
-        this.rooms.add(room);
-    }
+    // public void addRoom(Room room) {
+    // this.rooms.add(room);
+    // }
 
-    public void removeRoom(Room room) {
-        this.rooms.remove(room);
-    }
+    // public void removeRoom(Room room) {
+    // this.rooms.remove(room);
+    // }
 
-    public List<Room> getRooms() {
-        return this.rooms;
-    }
+    // public List<Room> getRooms() {
+    // return this.rooms;
+    // }
 
     public String getName() {
         return this.name;
@@ -49,6 +52,10 @@ public class Building implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     // public List<Map<String, String>> getBookings(List<LocalDate> dates,

@@ -140,6 +140,7 @@ public class BookingSystemCli {
                     String address = bufferedReader.readLine().strip();
                     write(controller.controlAddBuilding(buildingName, address));
                 } else {
+                    // validate building exists
                     write(controller.controlRemoveBuilding(buildingName));
                 }
             }
@@ -176,11 +177,38 @@ public class BookingSystemCli {
                 write(Arrays.deepToString(controller.controlGetBookings()));
             } else {
                 write(">> Date: ");
-                String date = bufferedReader.readLine().strip();
+                String date = null;
+                while (date == null) {
+                    String in = bufferedReader.readLine().strip();
+                    try {
+                        controller.validateDate(in);
+                        date = in;
+                    } catch (Exception e) {
+                        write(e.getMessage());
+                    }
+                }
                 write(">> Start Time: ");
-                String sTime = bufferedReader.readLine().strip();
+                String sTime = null;
+                while (sTime == null) {
+                    String in = bufferedReader.readLine().strip();
+                    try {
+                        controller.validateTime(in);
+                        sTime = in;
+                    } catch (Exception e) {
+                        write(e.getMessage());
+                    }
+                }
                 write(">> End Time: ");
-                String eTime = bufferedReader.readLine().strip();
+                String eTime = null;
+                while (eTime == null) {
+                    String in = bufferedReader.readLine().strip();
+                    try {
+                        controller.validateTime(in);
+                        eTime = in;
+                    } catch (Exception e) {
+                        write(e.getMessage());
+                    }
+                }
                 write(">> Room name: ");
                 String rName = bufferedReader.readLine().strip();
                 write(">> Building name: ");

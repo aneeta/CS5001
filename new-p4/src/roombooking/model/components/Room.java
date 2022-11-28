@@ -5,38 +5,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Room implements Serializable {
 
-    private Building building;
-    private List<Booking> bookings;
-    private String roomId;
+    private int buildingId;
+    private String name;
+    private int id;
 
     @JsonCreator
-    public Room(@JsonProperty("roomId") String roomId, @JsonProperty("building") Building building) {
-        this.roomId = roomId;
-        this.building = building;
-        this.bookings = new ArrayList<>();
+    public Room(@JsonProperty("name") String name, @JsonProperty("buildingId") int buildingId,
+            @JsonProperty("id") int id) {
+        this.buildingId = buildingId;
+        this.name = name;
+        this.id = id;
+
     }
 
-    public Building getBuilding() {
-        return building;
+    // public String getBuildingName() {
+    // return buildingName;
+    // }
+
+    public int getBuildingId() {
+        return buildingId;
     }
 
-    public void addBooking(Booking b) {
-        this.bookings.add(b);
-    }
+    // public void addBooking(Booking b) {
+    // this.bookings.add(b);
+    // }
 
-    public void removeBooking(Booking b) {
-        this.bookings.remove(b);
-    }
+    // public void removeBooking(Booking b) {
+    // this.bookings.remove(b);
+    // }
 
-    public List<Booking> getBookings() {
-        return this.bookings;
-    }
+    // public List<Booking> getBookings() {
+    // return this.bookings;
+    // }
 
     public String getName() {
-        return this.roomId;
+        return this.name;
+    }
+
+    public int getId() {
+        return this.id;
     }
 }
