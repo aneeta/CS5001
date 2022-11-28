@@ -11,6 +11,8 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -32,9 +34,12 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import roombooking.controller.BookingSystemController;
 import roombooking.model.BookingSystemModel;
@@ -47,8 +52,9 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
     private JFrame mainFrame;
     private JMenuBar menu;
     private JPanel infoPanel;
-    private JPanel bookingsPanel;
+    private JSplitPane bookingsPanel;
     private JPanel quickButtonsPanel;
+    private JTable bookingsTable;
 
     private static int DEFAULT_FRAME_WIDTH = 1000;
     private static int DEFAULT_FRAME_HEIGHT = 600;
@@ -57,9 +63,12 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
     private String[] currentRoomsSelection;
     private String[] currentPeopleSelection;
 
+    private Map<String, Map<String, Component>> componentsMappings;
+
     public BookingSystemGui(BookingSystemModel model, BookingSystemController controller) {
         this.model = model;
         this.controller = controller;
+        this.componentsMappings = new HashMap<>();
 
         model.addListener(this);
         setupFrame();
@@ -82,8 +91,8 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
         // setup the menu ribbon
         JMenu menuNew = new JMenu("New...");
         JMenu menuRemove = new JMenu("Remove...");
-        JMenu menuSave = new JMenu("Save");
-        JMenu menuLoad = new JMenu("Load");
+        JButton menuSave = new JButton("Save");
+        JButton menuLoad = new JButton("Load");
         menu.add(menuNew);
         menu.add(menuRemove);
         menu.add(menuSave);
@@ -155,14 +164,14 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
         });
 
         // load
-        menuSave.addActionListener(new ActionListener() {
+        menuLoad.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 loadSystem();
             }
         });
 
         // save
-        menuLoad.addActionListener(new ActionListener() {
+        menuSave.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 saveSystem();
             }
@@ -198,7 +207,6 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
 
     private void setupBody() {
         initLoadPopUp();
-
         setupInfo();
         setupBookings();
         setupQuickButtons();
@@ -213,14 +221,14 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
         int loadOption = JOptionPane.showConfirmDialog(
                 mainFrame,
                 "Would you like to load an existing system?",
-                "Booking System Start Up",
-                JOptionPane.YES_NO_OPTION);
+                "Booking System Start Up", JOptionPane.YES_NO_OPTION);
         if (loadOption == JOptionPane.YES_OPTION) {
             loadSelector();
         } else {
             // pop up informing new system will be initalised
             JOptionPane.showMessageDialog(mainFrame, "Starting fresh session", "Load Status",
                     JOptionPane.INFORMATION_MESSAGE);
+
         }
     }
 
@@ -235,6 +243,7 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
             String filePath = j.getSelectedFile().getAbsolutePath();
             String msg = controller.controlLoad(filePath);
             JOptionPane.showMessageDialog(mainFrame, msg, "Load Status", JOptionPane.INFORMATION_MESSAGE);
+            setupBookings();
         }
     }
 
@@ -264,23 +273,30 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
     }
 
     private void setupBookings() {
-        bookingsPanel = new JPanel();
-        // Left Pane
-        JComponent left = setupDataPanel();
-        // Right Pane
-        JPanel right = setupSelectionPanel();
-
-        JSplitPane splitPane = new JSplitPane(
+        // componentsMappings.put("body", new HashMap<>());
+        bookingsPanel = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
-                left,
-                right);
-        bookingsPanel.add(splitPane);
+                setupDataPanel(),
+                setupSelectionPanel());
+        bookingsPanel.setResizeWeight(0.5);
     }
 
     private JComponent setupDataPanel() {
+        // Map map = componentsMappings.get(body);
+
         String[][] data = controller.controlGetBookings();
         String[][] body = Arrays.copyOfRange(data, 1, data.length);
-        JTable bookingsTable = new JTable(body, data[0]);
+        DefaultTableModel dtm = new DefaultTableModel(body, data[0]);
+        bookingsTable = new JTable(dtm);
+        // bookingsTable.addPropertyChangeListener(new PropertyChangeListener() {
+        // public void propertyChange(PropertyChangeEvent e) {
+        // String[][] data = controller.controlGetBookings();
+        // String[][] body = Arrays.copyOfRange(data, 1, data.length);
+        // DefaultTableModel dtm = new DefaultTableModel(body, data[0]);
+        // bookingsTable.setModel(dtm);
+        // bookingsTable.repaint();
+        // }
+        // });
         bookingsTable.setAutoCreateRowSorter(true);
         JScrollPane scrollTable = new JScrollPane(bookingsTable);
         bookingsTable.setFillsViewportHeight(true);
@@ -302,6 +318,7 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
         selectionPane.add(getSelectionPane("Room", currentRoomsSelection));
         selectionPane
                 .add(getSelectionPane("Booking Owner", currentPeopleSelection));
+
         JButton resetButton = new JButton("Reset selection");
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -337,12 +354,17 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
         quickButtonsPanel = new JPanel();
         JButton addBookingQuickButton = new JButton("+");
         JButton removeBookingQuickButton = new JButton("-");
+        addBookingQuickButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                newBookingPopUp();
+            }
+        });
         quickButtonsPanel.add(addBookingQuickButton);
         quickButtonsPanel.add(removeBookingQuickButton);
         mainFrame.add(quickButtonsPanel);
     }
 
-    private JFrame addBaseFrame(String frameTitle, int w, int h, JPanel form) {
+    private JFrame addBaseFrame(String frameTitle, int w, int h, JPanel form, String action) {
         final JFrame newFrame = new JFrame(frameTitle);
         newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         newFrame.setSize(w, h); // set frame
@@ -351,35 +373,29 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-        JButton saveButton = new JButton("Save");
+        JButton saveButton = new JButton("OK");
         JButton resetButton = new JButton("Reset");
-
-        saveButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // TODO save values
-                for (Component comp : form.getComponents()) {
-                    if (comp instanceof JTextField) {
-                        String text = ((JTextField) comp).getText();
-                        System.out.println(text);
-                        // this is the text. Do what you want with it....
-                    } else if (comp instanceof JComboBox) {
-                        Object obj = ((JComboBox) comp).getSelectedItem();
-                        System.out.println(obj.toString());
-                    }
-                }
-            }
-        });
+        componentsMappings.get(action).put("saveButton", saveButton);
+        componentsMappings.get(action).put("resetButton", resetButton);
 
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // TODO reset values
-                System.out.println("Reset button clicked");
+                for (Component comp : form.getComponents()) {
+                    if (comp instanceof JTextField) {
+                        ((JTextField) comp).setText("");
+                        // this is the text. Do what you want with it....
+                    }
+                    // } else if (comp instanceof JComboBox) {
+                    // Object obj = ((JComboBox) comp).setSelectedItem(null);
+                    // }
+                }
             }
         });
 
-        panel.add(saveButton);
-        panel.add(Box.createHorizontalGlue());
         panel.add(resetButton);
+        panel.add(Box.createHorizontalGlue());
+        panel.add(saveButton);
 
         newFrame.getContentPane().add(form, BorderLayout.CENTER);
         newFrame.getContentPane().add(panel, BorderLayout.SOUTH);
@@ -389,41 +405,68 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
     }
 
     private void newBookingPopUp() {
-        String[] labels = { "Date: ", "Start Time: ", "End Time: " };
+        String action = "New Booking";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Date", "Start Time", "End Time" };
         int numPairs = labels.length;
 
         JPanel p = new JPanel(new GridLayout(7, 2, 1, 1));
         for (int i = 0; i < numPairs; i++) {
-            JLabel l = new JLabel(labels[i], JLabel.TRAILING);
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
             p.add(l);
             JTextField textField = new JTextField(10);
             l.setLabelFor(textField);
             p.add(textField);
+            map.put(labels[i], textField);
         }
 
         // Building
-        JLabel l = new JLabel("Building: ", JLabel.TRAILING);
+        JLabel l = new JLabel("Building", JLabel.LEADING);
         p.add(l);
         // JComboBox c = new JComboBox<>(model.getBuildings());
         JComboBox c = new JComboBox<>(controller.controlGetBuildingList());
         l.setLabelFor(c);
         p.add(c);
+        map.put("Building", c);
 
         // Room
-        JLabel l2 = new JLabel("Room: ", JLabel.TRAILING);
+        JLabel l2 = new JLabel("Room", JLabel.LEADING);
         p.add(l2);
         JComboBox c2 = new JComboBox<>(controller.controlGetRoomList());
         l2.setLabelFor(c2);
         p.add(c2);
+        map.put("Room", c2);
 
         // Owner
-        JLabel l3 = new JLabel("Owner: ", JLabel.TRAILING);
+        JLabel l3 = new JLabel("Owner", JLabel.LEADING);
         p.add(l3);
         JComboBox c3 = new JComboBox<>(controller.controlGetPersonList());
         l3.setLabelFor(c3);
         p.add(c3);
+        map.put("Owner", c3);
 
-        final JFrame newBookingFrame = addBaseFrame("New Booking", 300, 400, p);
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 400, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField date = (JTextField) map.get("Date");
+                JTextField st = (JTextField) map.get("Start Time");
+                JTextField et = (JTextField) map.get("End Time");
+                JComboBox building = (JComboBox) map.get("Building");
+                JComboBox room = (JComboBox) map.get("Room");
+                JComboBox owner = (JComboBox) map.get("Owner");
+                String msg = controller.controlAddBooking(
+                        date.getText(),
+                        st.getText(),
+                        et.getText(),
+                        (String) building.getSelectedItem(),
+                        (String) room.getSelectedItem(),
+                        (String) owner.getSelectedItem());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
         // newBookingFrame.add(save);
         // JComboBox c3 = new JComboBox<>(model.getPeople());
         // l3.setLabelFor(c3);
@@ -431,66 +474,279 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
 
         newBookingFrame.paintAll(newBookingFrame.getGraphics());
         newBookingFrame.pack();
-
     }
 
     private void newPersonPopUp() {
-        String[] labels = { "Name: ", "Email: " };
-        String[] values = { null, null };
+        String action = "New Person";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name", "Email" };
         int numPairs = labels.length;
 
         JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
         for (int i = 0; i < numPairs; i++) {
-            JLabel l = new JLabel(labels[i], JLabel.TRAILING);
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
             p.add(l);
             JTextField textField = new JTextField(10);
-            final int j = i;
-            textField.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    values[j] = textField.getText();
-                    System.out.println(">>> value changed in %s to %s".formatted(labels[j], values[j]));
-                }
-            });
-
+            map.put(labels[i], textField);
             l.setLabelFor(textField);
             p.add(textField);
         }
 
-        final JFrame newBookingFrame = addBaseFrame("New Person", 300, 200, p);
-        String name = ((JTextField) newBookingFrame.getContentPane().getComponent(0)).getText();
-        String email = ((JTextField) newBookingFrame.getContentPane().getComponent(1)).getText();
-
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField email = (JTextField) map.get("Email");
+                String msg = controller.controlAddPerson(
+                        name.getText(),
+                        email.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
         newBookingFrame.paintAll(newBookingFrame.getGraphics());
         newBookingFrame.pack();
     }
 
     private void newRoomPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, New Room not linked to model!");
+        String action = "New Room";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name", "Buiding" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            map.put(labels[i], textField);
+            l.setLabelFor(textField);
+            p.add(textField);
+        }
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField bld = (JTextField) map.get("Building");
+                String msg = controller.controlAddRoom(
+                        name.getText(),
+                        bld.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
+        newBookingFrame.paintAll(newBookingFrame.getGraphics());
+        newBookingFrame.pack();
 
     }
 
     private void newBuildingPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, New Building not linked to model!");
+        String action = "New Building";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name", "Address" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            map.put(labels[i], textField);
+            l.setLabelFor(textField);
+            p.add(textField);
+        }
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField bld = (JTextField) map.get("Address");
+                String msg = controller.controlAddBuilding(
+                        name.getText(),
+                        bld.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
+        newBookingFrame.paintAll(newBookingFrame.getGraphics());
+        newBookingFrame.pack();
 
     }
 
     private void removeBookingPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, remove Booking not linked to model!");
+        String action = "Remove Booking";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Date", "Start Time", "End Time" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(7, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            l.setLabelFor(textField);
+            p.add(textField);
+            map.put(labels[i], textField);
+        }
+
+        // Building
+        JLabel l = new JLabel("Building", JLabel.LEADING);
+        p.add(l);
+        // JComboBox c = new JComboBox<>(model.getBuildings());
+        JComboBox c = new JComboBox<>(controller.controlGetBuildingList());
+        l.setLabelFor(c);
+        p.add(c);
+        map.put("Building", c);
+
+        // Room
+        JLabel l2 = new JLabel("Room", JLabel.LEADING);
+        p.add(l2);
+        JComboBox c2 = new JComboBox<>(controller.controlGetRoomList());
+        l2.setLabelFor(c2);
+        p.add(c2);
+        map.put("Room", c2);
+
+        // Owner
+        JLabel l3 = new JLabel("Owner", JLabel.LEADING);
+        p.add(l3);
+        JComboBox c3 = new JComboBox<>(controller.controlGetPersonList());
+        l3.setLabelFor(c3);
+        p.add(c3);
+        map.put("Owner", c3);
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 400, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField date = (JTextField) map.get("Date");
+                JTextField st = (JTextField) map.get("Start Time");
+                JTextField et = (JTextField) map.get("End Time");
+                JComboBox building = (JComboBox) map.get("Building");
+                JComboBox room = (JComboBox) map.get("Room");
+                JComboBox owner = (JComboBox) map.get("Owner");
+                String msg = controller.controlRemoveBooking(
+                        date.getText(),
+                        st.getText(),
+                        et.getText(),
+                        (String) building.getSelectedItem(),
+                        (String) room.getSelectedItem(),
+                        (String) owner.getSelectedItem());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
 
     }
 
     private void removePersonPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, remove Person not linked to model!");
+        String action = "Remove Person";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name", "Email" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            map.put(labels[i], textField);
+            l.setLabelFor(textField);
+            p.add(textField);
+        }
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField email = (JTextField) map.get("Email");
+                String msg = controller.controlRemovePerson(
+                        name.getText(),
+                        email.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
+        newBookingFrame.paintAll(newBookingFrame.getGraphics());
+        newBookingFrame.pack();
 
     }
 
     private void removeRoomPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, remove Room not linked to model!");
+        String action = "Remove Room";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name", "Buiding" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            map.put(labels[i], textField);
+            l.setLabelFor(textField);
+            p.add(textField);
+        }
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField bld = (JTextField) map.get("Building");
+                String msg = controller.controlRemoveRoom(
+                        name.getText(),
+                        bld.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
+        newBookingFrame.paintAll(newBookingFrame.getGraphics());
+        newBookingFrame.pack();
 
     }
 
     private void removeBuildingPopUp() {
-        JOptionPane.showMessageDialog(mainFrame, "Ooops, remove Building not linked to model!");
+        String action = "Remove Building";
+        Map<String, Component> map = new HashMap<>();
+        componentsMappings.put(action, map);
+        String[] labels = { "Name" };
+        int numPairs = labels.length;
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 1, 1));
+        for (int i = 0; i < numPairs; i++) {
+            JLabel l = new JLabel(labels[i], JLabel.LEADING);
+            p.add(l);
+            JTextField textField = new JTextField(10);
+            map.put(labels[i], textField);
+            l.setLabelFor(textField);
+            p.add(textField);
+        }
+
+        final JFrame newBookingFrame = addBaseFrame(action, 300, 200, p, action);
+        JButton saveButton = (JButton) componentsMappings.get(action).get("saveButton");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JTextField name = (JTextField) map.get("Name");
+                JTextField bld = (JTextField) map.get("Address");
+                String msg = controller.controlRemoveBuilding(
+                        name.getText());
+                JOptionPane.showMessageDialog(newBookingFrame, msg);
+                newBookingFrame.dispose();
+            }
+        });
+        newBookingFrame.paintAll(newBookingFrame.getGraphics());
+        newBookingFrame.pack();
 
     }
 
@@ -503,22 +759,50 @@ public class BookingSystemGui implements ActionListener, PropertyChangeListener 
     // };
     // }
     public void propertyChange(PropertyChangeEvent event) {
-        // event has the new value written into it
-        // double newTotal = (double) event.getNewValue();
 
-        // SwingUtilities.invokeLater(
-        // new Runnable() {
-        // public void run() {
-        // totalField.setText("" + newTotal); // we could have used model.getTotal()
-        // instead
-        // mainFrame.repaint();
-        // }
-        // });
+        // if (event.getSource().equals(model.bu))
+
+        System.out.printf("%s source %s\n", event.getNewValue().toString(), event.getSource().toString());
+        //
+        SwingUtilities.invokeLater(
+                new Runnable() {
+                    public void run() {
+                        // setupBookings();
+                        // String[][] data = controller.controlGetBookings();
+                        // String[][] body = Arrays.copyOfRange(data, 1, data.length);
+                        // bookingsTable = new JTable(body, data[0]);
+                        // mainFrame.repaint();
+                        // bookingsTable.repaint();
+                        String[][] data = controller.controlGetBookings();
+                        String[][] body = Arrays.copyOfRange(data, 1, data.length);
+                        DefaultTableModel dtm = new DefaultTableModel(body, data[0]);
+                        bookingsTable.setModel(dtm);
+                        bookingsTable.repaint();
+                        // infoPanel.add(new JLabel("meep"));
+                        // mainFrame.repaint();
+                    }
+                });
+
+        // // act // TODO Auto-generated method stub
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // TODO Auto-generated method stub
+        // TODO Auto-gen
+
     }
 
-}
+
+    
+
+    
+
+        
+
+    
+
+    
+
+    
+
+    
