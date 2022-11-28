@@ -39,15 +39,6 @@ public class Booking implements Serializable {
             // Check that booking has duration
             throw new IllegalBookingException("Booking does not have a duration!");
         }
-        // Check that booking does not overlap with another
-        for (Booking b : venue.getBookings()) {
-            if (b.getDate().equals(this.date)) {
-                int overlap = endTime.compareTo(b.getStartTime());
-                if (overlap > 0) {
-                    throw new IllegalBookingException("Booking overlaps with existing booking!");
-                }
-            }
-        }
     }
 
     public LocalTime getStartTime() {

@@ -1,13 +1,16 @@
 package roombooking.controller;
 
+import roombooking.model.components.Booking;
 import roombooking.model.components.Building;
 import roombooking.model.components.Person;
 import roombooking.model.components.Room;
+import roombooking.model.components.exceptions.IllegalBookingException;
 
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +25,7 @@ import roombooking.model.BookingSystemModel;
 public class BookingSystemController {
 
     public final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    public final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m");
+    public final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private BookingSystemModel model;
 
@@ -46,10 +49,13 @@ public class BookingSystemController {
     }
 
     public String[][] controlGetBookings(String[] dates, String[] rooms, String[] owners) {
+        if (dates.length == 0 && rooms.length == 0 && owners.length == 0) {
+            return controlGetBookings();
+        }
         // Parse dates
         List<LocalDate> parsedDates = new ArrayList<>();
         for (int i = 0; i < dates.length; i++) {
-            parsedDates.add(LocalDate.parse(dates[i], model.DATE_FORMATTER));
+            parsedDates.add(LocalDate.parse(dates[i], DATE_FORMATTER));
         }
         // Parse rooms
         List<Room> parsedRooms = model.getRooms().stream()
@@ -83,7 +89,7 @@ public class BookingSystemController {
             data[i][1] = String.format("%s - %s",
                     b.getStartTime().format(TIME_FORMATTER),
                     b.getEndTime().format(TIME_FORMATTER));
-            data[i][2] = b.getVenue().getBuilding().getName();
+            data[i][2] = model.matchBuildingId(b.getVenue().getBuildingId()).getName();
             data[i][3] = b.getVenue().getName();
             data[i][4] = b.getOwner().toDisplay();
             i++;
@@ -171,7 +177,8 @@ public class BookingSystemController {
 
     public String controlRemoveRoom(String roomId, String roomBuilding) {
         try {
-            Room targRoom = parseRoom(roomId, roomBuilding);
+            Building b = parseBuilding(roomBuilding);
+            Room targRoom = parseRoom(roomId, b);
             model.removeRoom(targRoom);
             return "Room removed successfully!";
         } catch (Exception e) {
@@ -200,7 +207,7 @@ public class BookingSystemController {
         int i = 1;
         for (Room p : model.getRooms()) {
             data[i][0] = p.getName();
-            data[i][1] = p.getBuilding().getName();
+            data[i][1] = model.matchBuildingId(p.getBuildingId()).getName();
             i++;
         }
         return data;
@@ -210,8 +217,8 @@ public class BookingSystemController {
             String bOwner) {
         try {
             Person owner = parsePerson(bOwner);
-            Room room = parseRoom(rName);
             Building building = parseBuilding(bBuilding);
+            Room room = parseRoom(rName, building);
             LocalDate date = LocalDate.parse(bDate, DATE_FORMATTER);
             LocalTime start = LocalTime.parse(sTime, TIME_FORMATTER);
             LocalTime end = LocalTime.parse(eTime, TIME_FORMATTER);
@@ -238,11 +245,11 @@ public class BookingSystemController {
         return data;
     }
 
-    public Room parseRoom(String name, String building) throws ParseException {
+    public Room parseRoom(String name, Building building) throws ParseException {
         List<Room> parsedRooms = model.getRooms().stream()
-                .filter(r -> r.getName().equals(name) && r.getBuilding().getName().equals(building))
+                .filter(r -> r.getName().equals(name) && r.getBuildingId() == building.getId())
                 .collect(Collectors.toList());
-        return (Room) interpretReturn(parsedRooms);
+        return (Room) interpretReturn(parsedRooms, "Room");
         // if (parsedRooms.size() == 0) {
         // throw new ParseException(name + " in " + buildingName + "not found!");
         // } else if (parsedRooms.size() > 1 ) {
@@ -256,7 +263,7 @@ public class BookingSystemController {
         List<Room> parsedRooms = model.getRooms().stream()
                 .filter(r -> r.getName().equals(name))
                 .collect(Collectors.toList());
-        return (Room) interpretReturn(parsedRooms);
+        return (Room) interpretReturn(parsedRooms, "Room");
         // if (parsedRooms.size() == 0) {
         // throw new ParseException(name + " in " + buildingName + "not found!");
         // } else if (parsedRooms.size() > 1 ) {
@@ -270,7 +277,7 @@ public class BookingSystemController {
         List<Building> parsedBuildings = model.getBuildings().stream()
                 .filter(b -> b.getName().equals(name))
                 .collect(Collectors.toList());
-        return (Building) interpretReturn(parsedBuildings);
+        return (Building) interpretReturn(parsedBuildings, "Building");
         // if (parsedBuildings.size() == 0) {
         // throw new ParseException(name + " in " + buildingName + "not found!");
         // } else if (parsedBuildings.size() > 1 ) {
@@ -284,21 +291,21 @@ public class BookingSystemController {
         List<Person> parsedPersons = model.getPeople().stream()
                 .filter(p -> p.getName().equals(name))
                 .collect(Collectors.toList());
-        return (Person) interpretReturn(parsedPersons);
+        return (Person) interpretReturn(parsedPersons, "Person");
     }
 
     public Person parsePerson(String name, String email) throws ParseException {
         List<Person> parsedPersons = model.getPeople().stream()
                 .filter(p -> p.getName().equals(name) && p.getEmail().equals(email))
                 .collect(Collectors.toList());
-        return (Person) interpretReturn(parsedPersons);
+        return (Person) interpretReturn(parsedPersons, "Person");
     }
 
     public Booking parseBooking(String bDate, String sTime, String eTime, String bBuilding, String rName, String bOwner)
             throws ParseException {
         Person owner = parsePerson(bOwner);
-        Room room = parseRoom(rName);
-        Building Building = parseBuilding(bBuilding);
+        Building building = parseBuilding(bBuilding);
+        Room room = parseRoom(rName, building);
         LocalDate date = LocalDate.parse(bDate, DATE_FORMATTER);
         LocalTime start = LocalTime.parse(sTime, TIME_FORMATTER);
         LocalTime end = LocalTime.parse(eTime, TIME_FORMATTER);
@@ -307,16 +314,52 @@ public class BookingSystemController {
                 .filter(b -> b.getOwner().equals(owner) && b.getDate().equals(date) && b.getVenue().equals(room)
                         && b.getStartTime().equals(start) && b.getEndTime().equals(end))
                 .collect(Collectors.toList());
-        return (Booking) interpretReturn(parsedBookings);
+        return (Booking) interpretReturn(parsedBookings, "Booking");
     }
 
-    public Object interpretReturn(List parsedItem) throws ParseException {
+    public Object interpretReturn(List parsedItem, String objDesc) throws ParseException {
         if (parsedItem.size() == 0) {
-            throw new ParseException("Object not found!", 0);
+            throw new ParseException("%s not found!".formatted(objDesc), 0);
         } else if (parsedItem.size() > 1) {
-            throw new ParseException("Multiple entries found!", 0); // TODO explain/change arbitrary 0
+            throw new ParseException("Multiple matching %s entries found!".formatted(objDesc), 0); // TODO
+                                                                                                   // explain/change
+                                                                                                   // arbitrary 0
         } else {
             return parsedItem.get(0);
+        }
+    }
+
+    public String[] controlGetDateList() {
+        // return datesList.stream().forEach(x -> x.getName()).toArray(String[]::new);
+        return new String[] { "12/03/2023", "11/11/2023" };
+    }
+
+    public String[] controlGetPersonList() {
+        return model.getPeople().stream().map(x -> x.getName()).toArray(String[]::new);
+    }
+
+    public String[] controlGetBuildingList() {
+        return model.getBuildings().stream().map(x -> x.getName()).toArray(String[]::new);
+    }
+
+    public String[] controlGetRoomList() {
+        return model.getRooms().stream().map(x -> x.getName()).toArray(String[]::new);
+    }
+
+    public void validateTime(String in) throws IllegalBookingException {
+        try {
+            LocalTime.parse(in, TIME_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new IllegalBookingException("Invalid Time Format: please use %s".formatted(TIME_FORMATTER));
+        }
+
+    }
+
+    public void validateDate(String in) throws IllegalBookingException {
+        try {
+            LocalDate.parse(in, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new IllegalBookingException("Invalid Date Format: please use %s".formatted(DATE_FORMATTER));
         }
     }
 
