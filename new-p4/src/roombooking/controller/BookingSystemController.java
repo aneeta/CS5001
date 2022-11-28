@@ -250,13 +250,6 @@ public class BookingSystemController {
                 .filter(r -> r.getName().equals(name) && r.getBuildingId() == building.getId())
                 .collect(Collectors.toList());
         return (Room) interpretReturn(parsedRooms, "Room");
-        // if (parsedRooms.size() == 0) {
-        // throw new ParseException(name + " in " + buildingName + "not found!");
-        // } else if (parsedRooms.size() > 1 ) {
-        // throw new ParseException("Multiple entries found!")
-        // } else {
-        // return parsedRooms.get(0);
-        // }
     }
 
     public Room parseRoom(String name) throws ParseException {
@@ -264,13 +257,6 @@ public class BookingSystemController {
                 .filter(r -> r.getName().equals(name))
                 .collect(Collectors.toList());
         return (Room) interpretReturn(parsedRooms, "Room");
-        // if (parsedRooms.size() == 0) {
-        // throw new ParseException(name + " in " + buildingName + "not found!");
-        // } else if (parsedRooms.size() > 1 ) {
-        // throw new ParseException("Multiple entries found!")
-        // } else {
-        // return parsedRooms.get(0);
-        // }
     }
 
     public Building parseBuilding(String name) throws ParseException {
@@ -278,13 +264,6 @@ public class BookingSystemController {
                 .filter(b -> b.getName().equals(name))
                 .collect(Collectors.toList());
         return (Building) interpretReturn(parsedBuildings, "Building");
-        // if (parsedBuildings.size() == 0) {
-        // throw new ParseException(name + " in " + buildingName + "not found!");
-        // } else if (parsedBuildings.size() > 1 ) {
-        // throw new ParseException("Multiple entries found!")
-        // } else {
-        // return parsedRooms.get(0);
-        // }
     }
 
     public Person parsePerson(String name) throws ParseException {

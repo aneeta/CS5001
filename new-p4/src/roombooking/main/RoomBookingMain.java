@@ -16,7 +16,7 @@ public class RoomBookingMain {
         // Create controller
         BookingSystemController controller = new BookingSystemController(model);
 
-        // BookingSystemGui gui = new BookingSystemGui(model, controller);
+        BookingSystemGui gui = new BookingSystemGui(model, controller);
 
         // BookingSystemCli cli = new BookingSystemCli(controller, model);
         BookingSystemCli cli = new BookingSystemCli(controller);

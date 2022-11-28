@@ -71,6 +71,7 @@ public class BookingSystemModel implements Serializable {
         buildingMapping = new HashMap<>();
         roomMapping = new HashMap<>();
         personMapping = new HashMap<>();
+        // previous versions for property change management
         institutionNamePrev = "[Unknown]";
         buildingsPrev = new ArrayList<>();
         roomsPrev = new ArrayList<>();
