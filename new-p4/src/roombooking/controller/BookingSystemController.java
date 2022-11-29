@@ -309,8 +309,8 @@ public class BookingSystemController {
     }
 
     public String[] controlGetDateList() {
-        // return datesList.stream().forEach(x -> x.getName()).toArray(String[]::new);
-        return new String[] { "12/03/2023", "11/11/2023" };
+        return model.getBookings().stream().map(x -> x.getDate().format(DATE_FORMATTER)).toArray(String[]::new);
+        // return new String[] { "12/03/2023", "11/11/2023" };
     }
 
     public String[] controlGetPersonList() {
@@ -323,6 +323,30 @@ public class BookingSystemController {
 
     public String[] controlGetRoomList() {
         return model.getRooms().stream().map(x -> x.getName()).toArray(String[]::new);
+    }
+
+    public String[] controlGetRoomBuildingList() {
+        return model.getRooms().stream().map(x -> x.getName() + " (" + model.matchBuildingId(x.getBuildingId()) + ")")
+                .toArray(String[]::new);
+    }
+
+    public String[] controlGetRoomList(String builString) {
+        List<Building> parsedBuild = model.getBuildings().stream()
+                .filter(p -> p.getName().equals(builString))
+                .collect(Collectors.toList());
+
+        // List<Room> filteredRooms = model.getBookings(ownerObj);
+        return model.getRooms().stream().filter(x -> parsedBuild.contains(model.matchBuildingId(x.getBuildingId())))
+                .toArray(String[]::new);
+    }
+
+    public String[] controlGetEmailList(String ownerString) {
+        List<Person> parsedPersons = model.getPeople().stream()
+                .filter(p -> p.getName().equals(ownerString))
+                .collect(Collectors.toList());
+
+        // List<Room> filteredRooms = model.getBookings(ownerObj);
+        return parsedPersons.stream().map(x -> x.getEmail()).toArray(String[]::new);
     }
 
     public void validateTime(String in) throws IllegalBookingException {

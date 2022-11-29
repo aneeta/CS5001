@@ -33,7 +33,7 @@ public class BookingSystemModel implements Serializable {
 
     private ObjectMapper objectMapper;
 
-    private PropertyChangeSupport notifier;
+    private final PropertyChangeSupport notifier;
 
     private String institutionName;
     private List<Building> buildings;
@@ -57,7 +57,6 @@ public class BookingSystemModel implements Serializable {
 
     @JsonCreator
     public BookingSystemModel() {
-        this.notifier = new PropertyChangeSupport(this);
 
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -81,6 +80,9 @@ public class BookingSystemModel implements Serializable {
         roomMappingPrev = new HashMap<>();
         personMappingPrev = new HashMap<>();
         id = 0;
+
+        this.notifier = new PropertyChangeSupport(this);
+
     }
 
     /** Register a listener so it will be notified of any changes. */
@@ -111,8 +113,17 @@ public class BookingSystemModel implements Serializable {
         personMappingPrev = personMapping;
     }
 
-    public void updateBookings() {
+    public void replacedBookings() {
         notifier.firePropertyChange("bookings", bookingsPrev, bookings);
+        System.out.println("replaced bookings");
+        bookingsPrev = bookings;
+    }
+
+    public void updateBookings() {
+        notifier.firePropertyChange("bookings", null, bookings);
+        // notifier.fireIndexedPropertyChange("bookings", bookings.size(), bookingsPrev,
+        // bookings);
+        System.out.println("updated bookings");
         bookingsPrev = bookings;
     }
 
@@ -163,8 +174,8 @@ public class BookingSystemModel implements Serializable {
         updateBuildings();
         updateRooms();
         updatePeople();
-        updateBookings();
-
+        // updateBookings();
+        replacedBookings();
     }
 
     public void saveData(String saveName) throws IOException {
@@ -330,9 +341,3 @@ public class BookingSystemModel implements Serializable {
     }
 
 }
-
-    
-
-    
-
-    
