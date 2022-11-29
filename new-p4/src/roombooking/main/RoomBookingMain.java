@@ -3,7 +3,7 @@ package roombooking.main;
 import roombooking.controller.BookingSystemController;
 import roombooking.model.BookingSystemModel;
 import roombooking.views.cli.BookingSystemCli;
-import roombooking.views.gui.BookingSystemGui;
+import roombooking.views.gui2.BookingSystemGui;
 
 public class RoomBookingMain {
     /**
