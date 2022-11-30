@@ -9,22 +9,24 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.fasterxml.jackson.databind.JsonSerializable.Base;
-
 import roombooking.controller.BookingSystemController;
 import roombooking.model.BookingSystemModel;
-import roombooking.views.gui.BookingSystemGui;
 
+/**
+ * Class drawing a pop up frame with an appropriate from for add/remove
+ * functionality.
+ * Draws a frame with appropriate fields.
+ * Listens to the Model to populate these fields.
+ * Takes data in from the fields and passes it to the Controller.
+ */
 public class PopUpFrame implements ActionListener, PropertyChangeListener {
     private BookingSystemModel model;
 
@@ -39,6 +41,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         String[] labels = { "Date", "Start Time", "End Time" };
         int numPairs = labels.length;
 
+        // Date, Start, End (Freeform text fields)
         JPanel p = new JPanel(new GridLayout(7, 2, 5, 5));
         for (int i = 0; i < numPairs; i++) {
             JLabel l = new JLabel(labels[i], JLabel.LEADING);
@@ -49,19 +52,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
             map.put(labels[i], textField);
         }
 
-        // // Room & Building
-        // String[][] data = controller.controlGetRooms();
-        // String[] dataFormatted = Arrays.asList(data).stream().map(x -> x[0] + " (" +
-        // x[1] + ")").toArray(String[]::new);
-        // JLabel l = new JLabel("Room (Building)", JLabel.LEADING);
-        // p.add(l);
-        // JComboBox<String> c = new JComboBox<>(controller.controlGetBuildingList());
-        // l.setLabelFor(c);
-        // p.add(c);
-        // map.put("Building", c);
-
-        /// BUILDING DEPENDEDNT DROPDOWN
-        // Building
+        // Building (Dropdown)
         JLabel l = new JLabel("Building", JLabel.LEADING);
         p.add(l);
         JComboBox<String> c = new JComboBox<>(controller.controlGetBuildingList());
@@ -69,29 +60,15 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         p.add(c);
         map.put("Building", c);
 
-        // Room
+        // Room (Dropdown)
         JLabel l2 = new JLabel("Room", JLabel.LEADING);
         p.add(l2);
-
         JComboBox<String> c2 = new JComboBox<>(controller.controlGetRoomList());
-        // c2.setEnabled(false);
         l2.setLabelFor(c2);
         p.add(c2);
         map.put("Room", c2);
 
-        // c.addActionListener(new ActionListener() {
-        // public void actionPerformed(ActionEvent e) {
-        // System.out.println((String) c.getSelectedItem());
-        // System.out.println(controller.controlGetRoomList((String)
-        // c.getSelectedItem()).toString());
-        // c2.setModel(new DefaultComboBoxModel<>(controller.controlGetRoomList((String)
-        // c.getSelectedItem())));
-        // c2.setEnabled(true);
-
-        // }
-        // });
-
-        // Owner
+        // Owner (Dropdown)
         JLabel l3 = new JLabel("Owner", JLabel.LEADING);
         p.add(l3);
         JComboBox<String> c3 = new JComboBox<>(controller.controlGetPersonList());
@@ -101,7 +78,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         BaseForm newBookingFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newBookingFrame.getSaveButton();
-
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // get inputs
@@ -123,18 +100,16 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
                 newBookingFrame.dispose();
             }
         });
-        // newBookingFrame.paintAll(newBookingFrame.getGraphics());
-        // newBookingFrame.pack();
     }
 
     public static void newPerson(BookingSystemController controller) {
-        System.out.println("Running new person");
         String action = "New Person";
         Map<String, Component> map = new HashMap<>();
 
         String[] labels = { "Name", "Email" };
         int numPairs = labels.length;
 
+        // Name and Email (Freeform text fields)
         JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
         for (int i = 0; i < numPairs; i++) {
             JLabel l = new JLabel(labels[i], JLabel.LEADING);
@@ -147,10 +122,9 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
-
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Running new person action");
                 // get inputs
                 JTextField name = (JTextField) map.get("Name");
                 JTextField email = (JTextField) map.get("Email");
@@ -162,9 +136,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
                 newFrame.dispose();
             }
         });
-        // newFrame.paintAll(newFrame.getGraphics());
-        // newFrame.pack();
-
     }
 
     public static void newRoom(BookingSystemController controller) {
@@ -182,7 +153,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         JComboBox<String> c = new JComboBox<>(controller.controlGetBuildingList());
         l2.setLabelFor(c);
         p.add(c);
-
+        // action upon clicking save
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
         saveButton.addActionListener(new ActionListener() {
@@ -194,8 +165,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
                 newFrame.dispose();
             }
         });
-        // newFrame.paintAll(newFrame.getGraphics());
-        // newFrame.pack();
     }
 
     public static void newBuilding(BookingSystemController controller) {
@@ -217,6 +186,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JTextField name = (JTextField) map.get("Name");
@@ -237,6 +207,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         String[] labels = { "Date", "Start Time", "End Time" };
         int numPairs = labels.length;
 
+        // Date, Start, End (Freeform text fields)
         JPanel p = new JPanel(new GridLayout(6, 2, 5, 5));
         for (int i = 0; i < numPairs; i++) {
             JLabel l = new JLabel(labels[i], JLabel.LEADING);
@@ -247,21 +218,9 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
             map.put(labels[i], textField);
         }
 
-        // JPanel p = new JPanel(new GridLayout(7, 2, 5, 5));
-        // Date
-        // JLabel l = new JLabel("Date", JLabel.LEADING);
-        // p.add(l);
-        // JComboBox<String> c = new JComboBox<>(controller.controlGetDateList());
-        // l.setLabelFor(c);
-        // p.add(c);
-
-        // DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-        // Building
         JLabel l1 = new JLabel("Building", JLabel.LEADING);
         p.add(l1);
         JComboBox<String> c1 = new JComboBox<>(controller.controlGetBuildingList());
-        // c1.setModel(model);
-        // c1.setEnabled(false);
         l1.setLabelFor(c1);
         p.add(c1);
         map.put("Building", c1);
@@ -270,8 +229,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         JLabel l2 = new JLabel("Room", JLabel.LEADING);
         p.add(l2);
         JComboBox<String> c2 = new JComboBox<>(controller.controlGetRoomList());
-        // c2.setModel(model);
-        // c2.setEnabled(false);
         l2.setLabelFor(c2);
         p.add(c2);
         map.put("Room", c2);
@@ -283,30 +240,9 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         p.add(c3);
         map.put("Owner", c3);
 
-        // JLabel l1 = new JLabel("Building", JLabel.LEADING);
-        // p.add(l1);
-        // JComboBox c1 = new JComboBox<>(controller.controlGetBuildingList());
-        // l.setLabelFor(c1);
-        // p.add(c1);
-        // map.put("Building", c1);
-
-        // JLabel l2 = new JLabel("Room", JLabel.LEADING);
-        // p.add(l2);
-        // JComboBox c2 = new JComboBox<>(controller.controlGetRoomList());
-        // l2.setLabelFor(c2);
-        // p.add(c2);
-        // map.put("Room", c2);
-
-        // // Owner
-        // JLabel l3 = new JLabel("Owner", JLabel.LEADING);
-        // p.add(l3);
-        // JComboBox c3 = new JComboBox<>(controller.controlGetPersonList());
-        // l3.setLabelFor(c3);
-        // p.add(c3);
-        // map.put("Owner", c3);
-
         BaseForm removeBookingFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = removeBookingFrame.getSaveButton();
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JTextField date = (JTextField) map.get("Date");
@@ -343,7 +279,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         // Email
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-
         JLabel l2 = new JLabel("Email", JLabel.LEADING);
         p.add(l2);
         JComboBox<String> c2 = new JComboBox<>();
@@ -352,6 +287,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         l2.setLabelFor(c2);
         p.add(c2);
 
+        // Email dropdown after selecting Person
         c.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String person = (String) c.getSelectedItem();
@@ -362,7 +298,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
-
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String person = (String) c.getSelectedItem();
@@ -376,7 +312,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
     public static void removeRoom(BookingSystemController controller) {
         String action = "Remove Room";
-
         JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
 
         // Name
@@ -395,21 +330,20 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
         c2.setEnabled(false);
         l2.setLabelFor(c2);
         p.add(c2);
-
+        // room selection dropdown after building selected
         c.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 c2.setEnabled(true);
                 String builString = (String) c.getSelectedItem();
                 String[] roomStrings = controller.controlGetRoomList(builString);
-                System.out.printf("Rooms: %s\n", roomStrings.toString());
-                c2.setModel(new DefaultComboBoxModel<>());
+                c2.setModel(new DefaultComboBoxModel<>(roomStrings));
                 c2.setEnabled(true);
-
             }
         });
 
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String building = (String) c.getSelectedItem();
@@ -434,7 +368,7 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
         BaseForm newFrame = new BaseForm(action, 300, 400, p);
         JButton saveButton = newFrame.getSaveButton();
-
+        // action upon clicking save
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String msg = controller.controlRemoveBuilding(
@@ -448,8 +382,6 @@ public class PopUpFrame implements ActionListener, PropertyChangeListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

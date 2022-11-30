@@ -12,6 +12,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+/**
+ * Base frame for add/remove room/booking/person/building pop ups.
+ */
 public class BaseForm extends JFrame {
     private JButton saveButton;
     private JButton resetButton;
@@ -47,6 +50,11 @@ public class BaseForm extends JFrame {
         this.pack();
     }
 
+    /**
+     * Getter method for the Save button.
+     * 
+     * @return JButton
+     */
     public JButton getSaveButton() {
         return this.saveButton;
     }
