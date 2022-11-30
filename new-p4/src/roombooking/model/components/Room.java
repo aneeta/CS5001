@@ -1,19 +1,21 @@
 package roombooking.model.components;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Room implements Serializable {
+public class Room {
 
     private int buildingId;
     private String name;
     private int id;
 
+    /**
+     * Construstor method for a class representing a Room.
+     * 
+     * @param name       Room name
+     * @param buildingId Id of a building a room is located in
+     * @param id         Unique id
+     */
     @JsonCreator
     public Room(@JsonProperty("name") String name, @JsonProperty("buildingId") int buildingId,
             @JsonProperty("id") int id) {
@@ -23,30 +25,29 @@ public class Room implements Serializable {
 
     }
 
-    // public String getBuildingName() {
-    // return buildingName;
-    // }
-
+    /**
+     * Getter method for Room's Building Id.
+     * 
+     * @return int
+     */
     public int getBuildingId() {
         return buildingId;
     }
 
-    // public void addBooking(Booking b) {
-    // this.bookings.add(b);
-    // }
-
-    // public void removeBooking(Booking b) {
-    // this.bookings.remove(b);
-    // }
-
-    // public List<Booking> getBookings() {
-    // return this.bookings;
-    // }
-
+    /**
+     * Getter method for Room Name.
+     * 
+     * @return String
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Getter method for Room Id.
+     * 
+     * @return int
+     */
     public int getId() {
         return this.id;
     }

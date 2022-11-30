@@ -1,23 +1,21 @@
 package roombooking.model.components;
 
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Building implements Serializable {
+public class Building {
 
-    // private List<Room> rooms;
     private String name;
     private String address;
     private int id;
 
+    /**
+     * Construstor method for a class representing a Building.
+     * 
+     * @param name    building name
+     * @param address building address
+     * @param id      unique id
+     */
     @JsonCreator
     public Building(@JsonProperty("name") String name, @JsonProperty("address") String address,
             @JsonProperty("id") int id) {
@@ -26,48 +24,49 @@ public class Building implements Serializable {
         this.id = id;
     }
 
-    // public void addRoom(Room room) {
-    // this.rooms.add(room);
-    // }
-
-    // public void removeRoom(Room room) {
-    // this.rooms.remove(room);
-    // }
-
-    // public List<Room> getRooms() {
-    // return this.rooms;
-    // }
-
+    /**
+     * Getter method for Building Name.
+     * 
+     * @return String
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Getter method for Building Address.
+     * 
+     * @return String
+     */
     public String getAddress() {
         return this.address;
     }
 
+    /**
+     * Setter method for Building Name.
+     * 
+     * @param name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Setter method for Building Address.
+     * 
+     * @param address
+     */
     public void setAddress(String address) {
         this.address = address;
     }
 
+    /**
+     * Getter method for Building Id.
+     * 
+     * @return int
+     */
     public int getId() {
         return this.id;
     }
-
-    // public List<Map<String, String>> getBookings(List<LocalDate> dates,
-    // List<String> rooms,
-    // List<Person> owners) {
-    // List<Map<String, String>> allData = new ArrayList<>();
-    // for (String rName : rooms) {
-    // List<Map<String, String>> data = this.rooms.get(rName).getBookings(dates,
-    // owners);
-    // allData.addAll(data);
-    // }
-    // return allData;
-    // }
 
 }
