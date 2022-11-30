@@ -29,7 +29,7 @@ import roombooking.model.components.Person;
 import roombooking.model.components.Room;
 import roombooking.model.components.exceptions.IllegalBookingException;
 
-public class BookingSystemModel implements Serializable {
+public class BookingSystemModel {
 
     private ObjectMapper objectMapper;
 
@@ -55,6 +55,9 @@ public class BookingSystemModel implements Serializable {
 
     private int id;
 
+    /**
+     * Construstor method for a Model class in the Room Booking System.
+     */
     @JsonCreator
     public BookingSystemModel() {
 
@@ -92,29 +95,29 @@ public class BookingSystemModel implements Serializable {
 
     /** Broadcast most recent change to all listeners */
     public void updateBuildings() {
-        notifier.firePropertyChange("buildings", buildingsPrev, buildings);
+        notifier.firePropertyChange("buildings", null, buildings);
         buildingsPrev = buildings;
-        notifier.firePropertyChange("buildingMapping", buildingMappingPrev, buildingMapping);
+        notifier.firePropertyChange("buildingMapping", null, buildingMapping);
         buildingMappingPrev = buildingMapping;
 
     }
 
     public void updateRooms() {
-        notifier.firePropertyChange("rooms", roomsPrev, rooms);
+        notifier.firePropertyChange("rooms", null, rooms);
         roomsPrev = rooms;
-        notifier.firePropertyChange("roomMapping", roomMappingPrev, roomMapping);
+        notifier.firePropertyChange("roomMapping", null, roomMapping);
         roomMappingPrev = roomMapping;
     }
 
     public void updatePeople() {
-        notifier.firePropertyChange("people", peoplePrev, people);
+        notifier.firePropertyChange("people", null, people);
         peoplePrev = people;
-        notifier.firePropertyChange("personMapping", personMappingPrev, personMapping);
+        notifier.firePropertyChange("personMapping", null, personMapping);
         personMappingPrev = personMapping;
     }
 
     public void replacedBookings() {
-        notifier.firePropertyChange("bookings", bookingsPrev, bookings);
+        notifier.firePropertyChange("bookings", null, bookings);
         System.out.println("replaced bookings");
         bookingsPrev = bookings;
     }
@@ -128,7 +131,7 @@ public class BookingSystemModel implements Serializable {
     }
 
     public void updateName() {
-        notifier.firePropertyChange("institutionName", institutionNamePrev, institutionName);
+        notifier.firePropertyChange("institutionName", null, institutionName);
         institutionNamePrev = institutionName;
     }
 
