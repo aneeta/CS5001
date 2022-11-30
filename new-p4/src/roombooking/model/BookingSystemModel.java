@@ -187,6 +187,11 @@ public class BookingSystemModel implements Serializable {
     }
 
     public void addPerson(String fullName, String email) {
+        // check that the email has not been used before
+        List<String> takenEmails = people.stream().map(x -> x.getEmail()).collect(Collectors.toList());
+        if (takenEmails.contains(email)) {
+            throw new IllegalArgumentException("Email already taken!");
+        }
         Person newPerson = new Person(fullName, email, id);
         id++;
         this.people.add(newPerson);
@@ -228,6 +233,12 @@ public class BookingSystemModel implements Serializable {
     }
 
     public void addBuilding(String name, String address) {
+        // check if name is already used
+        List<String> buildingNames = buildings.stream().map(x -> x.getName()).collect(Collectors.toList());
+        if (buildingNames.contains(name)) {
+            throw new IllegalArgumentException("Building name already taken!");
+        }
+
         Building newBuilding = new Building(name, address, id);
         id++;
         this.buildings.add(newBuilding);
@@ -256,6 +267,10 @@ public class BookingSystemModel implements Serializable {
     }
 
     public void addRoom(String name, Building building) {
+        List<String> roomNames = getRooms(building).stream().map(x -> x.getName()).collect(Collectors.toList());
+        if (roomNames.contains(name)) {
+            throw new IllegalArgumentException("Room name already taken!");
+        }
         Room r = new Room(name, building.getId(), id);
         id++;
         roomMapping.put(r.getId(), r);
@@ -289,10 +304,18 @@ public class BookingSystemModel implements Serializable {
             throws IllegalBookingException {
         Booking newBooking = new Booking(date, start, end, owner, room);
         // Check that booking does not overlap with another
-        for (Booking b : this.bookings) {
+        List<Booking> roomBookings = this.bookings.stream().filter(x -> x.getVenue().equals(room))
+                .collect(Collectors.toList());
+        for (Booking b : roomBookings) {
             if (b.getDate().equals(newBooking.getDate())) {
-                int overlap = newBooking.getEndTime().compareTo(b.getStartTime());
-                if (overlap > 0) {
+                if ((b.getStartTime().compareTo(newBooking.getStartTime()) < 0
+                        && newBooking.getStartTime().compareTo(b.getEndTime()) < 0)
+                        ||
+                        (newBooking.getStartTime().compareTo(b.getStartTime()) < 0
+                                && b.getStartTime().compareTo(newBooking.getEndTime()) < 0)
+                        ||
+                        (newBooking.getStartTime().compareTo(b.getStartTime()) == 0
+                                && newBooking.getEndTime().compareTo(b.getEndTime()) == 0)) {
                     throw new IllegalBookingException("Booking overlaps with existing booking!");
                 }
             }
