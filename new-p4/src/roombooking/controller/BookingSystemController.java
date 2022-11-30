@@ -24,8 +24,8 @@ import roombooking.model.BookingSystemModel;
 
 public class BookingSystemController {
 
-    public final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    public final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private BookingSystemModel model;
 
@@ -289,6 +289,12 @@ public class BookingSystemController {
         LocalTime start = LocalTime.parse(sTime, TIME_FORMATTER);
         LocalTime end = LocalTime.parse(eTime, TIME_FORMATTER);
 
+        System.out.printf("%s %s %s %s %s\n", owner, room, date, start, end);
+        System.out.printf("there are %d bookings\n", model.getBookings().size());
+        for (Booking booking : model.getBookings()) {
+            System.out.printf("%s %s %s %s %s\n", booking.getOwner(), booking.getVenue(), booking.getDate(),
+                    booking.getStartTime(), booking.getEndTime());
+        }
         List<Booking> parsedBookings = model.getBookings().stream()
                 .filter(b -> b.getOwner().equals(owner) && b.getDate().equals(date) && b.getVenue().equals(room)
                         && b.getStartTime().equals(start) && b.getEndTime().equals(end))
