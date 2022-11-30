@@ -74,8 +74,8 @@
         {
             "date": [
                 2022,
-                15,
-                14
+                5,
+                4
             ],
             "startTime": [
                 11,
@@ -100,7 +100,7 @@
             "date": [
                 2022,
                 12,
-                16
+                8
             ],
             "startTime": [
                 17,
@@ -125,7 +125,7 @@
             "date": [
                 2022,
                 12,
-                14
+                12
             ],
             "startTime": [
                 16,
@@ -144,6 +144,31 @@
                 "name": "Lecture Hall A",
                 "buildingId": 0,
                 "id": 6
+            }
+        },
+        {
+            "date": [
+                2022,
+                2,
+                6
+            ],
+            "startTime": [
+                11,
+                0
+            ],
+            "endTime": [
+                13,
+                0
+            ],
+            "owner": {
+                "name": "Alice Doe",
+                "email": "alice@gmail.com",
+                "id": 7
+            },
+            "venue": {
+                "name": "Lab",
+                "buildingId": 0,
+                "id": 4
             }
         }
     ],
