@@ -37,7 +37,7 @@ They are oncluded with the submission in the `lib` directory.
 To compile the app, navigate to the `src` directory and run:
 
 ```bash
-javac -cp "$(printf %s: ../lib/*.jar)" roombooking/**/*.java
+javac -cp "$(printf %s: ../lib/*.jar)" @sources.txt
 ```
 
 ### Running the system
@@ -65,4 +65,16 @@ java -cp "$(printf %s: ../lib/*.jar)" tests.TestRunner
 
 ### GUI
 
+![Gui Screenshot](readme_media/gui.png "Gui Screenshot")
+
+Screenshot of the GUI with content loaded from `data/sample_data.json`.
+
+To view the same content:
+1. Start the app.
+2. Chose `Load` and select the `sample_data.json` file.
+
 ### CLI
+
+![CLI Gif](readme_media/cli.gif "CLI Demo Gif")
+
+Gif demonstrating some of the app functionality in the CLI.
