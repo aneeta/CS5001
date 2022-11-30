@@ -267,6 +267,7 @@ public class BookingSystemCli {
                 The available commands are:\n
                 NEW     (BUILDING/ROOM/PERSON/BOOKING)
                 REMOVE  (BUILDING/ROOM/PERSON/BOOKING)
+                LIST  (BUILDING/ROOM/PERSON/BOOKING)
                 LOAD    (PATH)
                 SAVE    (PATH)
                 EXIT
