@@ -1,7 +1,5 @@
 package roombooking.views.cli;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,10 +10,11 @@ import java.io.OutputStreamWriter;
 import java.util.Arrays;
 
 import roombooking.controller.BookingSystemController;
-import roombooking.model.BookingSystemModel;
 
+/**
+ * Room Booking System Command Line Interface.
+ */
 public class BookingSystemCli {
-    // private BookingSystemModel model;
     private BookingSystemController controller;
     private boolean exit;
     private boolean exitWarned;
@@ -26,7 +25,6 @@ public class BookingSystemCli {
     private BufferedWriter bufferedWriter;
 
     public BookingSystemCli(BookingSystemController controller) {
-        // this.model = model;
         this.controller = controller;
         this.exit = false;
 
@@ -34,10 +32,9 @@ public class BookingSystemCli {
         outStream = System.out;
         this.bufferedReader = new BufferedReader(new InputStreamReader(this.inStream));
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(this.outStream));
-
-        // model.addListener(this);
     }
 
+<<<<<<< HEAD:CS5001-p4-room-booking/src/roombooking/views/cli/BookingSystemCli.java
     // public void propertyChange(PropertyChangeEvent event) {
     // try {
     // write("%%% Property changed\n");
@@ -47,6 +44,8 @@ public class BookingSystemCli {
 
     // }
     // @Override
+=======
+>>>>>>> refs/rewritten/fix-names-p4:new-p4/src/roombooking/views/cli/BookingSystemCli.java
     public void run() {
         try {
             write("""
@@ -67,12 +66,22 @@ public class BookingSystemCli {
 
             handleCommand();
         } catch (IOException e) {
+<<<<<<< HEAD:CS5001-p4-room-booking/src/roombooking/views/cli/BookingSystemCli.java
             System.out.println(e.getMessage());
             // TODO
+=======
+            System.out.printf(
+                    "Error initialising the CLI (%s)!\n Traceback:\n%s",
+                    e.getMessage(), e.getStackTrace().toString());
+>>>>>>> refs/rewritten/fix-names-p4:new-p4/src/roombooking/views/cli/BookingSystemCli.java
         }
     }
 
-    private void handleCommand() {
+    /**
+     * High-level command handling method.
+     * Gets user input and resonds approprietly.
+     */
+    public void handleCommand() {
         while (!exit) {
             // wait until client gives an input
             String line = null;
@@ -81,12 +90,20 @@ public class BookingSystemCli {
                     line = bufferedReader.readLine();
                     runCommand(line);
                 } catch (Exception e) {
-                    // TODO: handle exception
+                    System.out.printf(
+                            "Error running the command (%s)!\n Traceback:\n%s",
+                            e.getMessage(), e.getStackTrace().toString());
                 }
             }
         }
     }
 
+    /**
+     * Direct command input to dedicated methods.
+     * 
+     * @param line
+     * @throws IOException
+     */
     public void runCommand(String line) throws IOException {
         String[] args = line.split(" ");
         String cmd = args[0].toUpperCase();
@@ -108,11 +125,16 @@ public class BookingSystemCli {
                 break;
             default:
                 // unrecorgnised command - ignore
-                // write("Unrecognised command. Type HELP for command options.");
                 break;
         }
     }
 
+    /**
+     * Method to prompt the input subject for 'NEW' or 'REMOVE' commands.
+     * 
+     * @param cmd
+     * @throws IOException
+     */
     public void getSubject(String cmd) throws IOException {
         write("> Choose subject (BUILDING/ROOM/PERSON/BOOKING): ");
         String subject = bufferedReader.readLine();
@@ -129,6 +151,13 @@ public class BookingSystemCli {
         }
     }
 
+    /**
+     * Method to prompt and handle the input arguments for user command.
+     * 
+     * @param cmd     base command (NEW or REMOVE)
+     * @param subject subject of command (BUILDING or ROOM or PERSON or BOOKING)
+     * @throws IOException
+     */
     public void getArgs(String cmd, String subject) throws IOException {
         if (subject.equals("BUILDING")) {
             if (cmd.equals("LIST")) {
@@ -225,8 +254,14 @@ public class BookingSystemCli {
         }
     }
 
+    /**
+     * Method to get a path for 'LOAD' or 'SAVE' command.
+     * 
+     * @param cmd
+     * @throws IOException
+     */
     public void getPath(String cmd) throws IOException {
-        write("> Choose path: ");
+        write("> Choose path:  (must be an abolute path and include the file name and extension, e.g. /home/test.json)");
         String in = bufferedReader.readLine().strip();
         String returnMsg;
         if (cmd.equals("SAVE")) {
@@ -237,17 +272,32 @@ public class BookingSystemCli {
         write(returnMsg);
     }
 
+    /**
+     * Logic for 'HELP' command inputted by user.
+     * 
+     * @throws IOException
+     */
     public void displayHelp() throws IOException {
         String helpString = """
                 The Room Booking System allows you to schedule
                 using a room at the %s.\n
-                The available commands are:
-                %s
+                The available commands are:\n
+                NEW     (BUILDING/ROOM/PERSON/BOOKING)
+                REMOVE  (BUILDING/ROOM/PERSON/BOOKING)
+                LIST  (BUILDING/ROOM/PERSON/BOOKING)
+                LOAD    (PATH)
+                SAVE    (PATH)
+                EXIT
                 """;
         String formattedHelpString = String.format(helpString, controller.controlGetInstitutionName(), "TODO");
         write(formattedHelpString);
     }
 
+    /**
+     * Logic for 'EXIT' command inputted by user.
+     * 
+     * @throws IOException
+     */
     public void handleExit() throws IOException {
         if (!exitWarned) {
             String exitMsg = """
@@ -263,6 +313,12 @@ public class BookingSystemCli {
         exit = true;
     }
 
+    /**
+     * Helper hethod to safely write out a message.
+     * 
+     * @param msg
+     * @throws IOException
+     */
     public void write(String msg) throws IOException {
         if (msg != null) {
             this.bufferedWriter.write(msg + "\n");

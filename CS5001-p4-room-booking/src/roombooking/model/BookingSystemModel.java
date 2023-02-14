@@ -4,19 +4,13 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,7 +23,7 @@ import roombooking.model.components.Person;
 import roombooking.model.components.Room;
 import roombooking.model.components.exceptions.IllegalBookingException;
 
-public class BookingSystemModel implements Serializable {
+public class BookingSystemModel {
 
     private ObjectMapper objectMapper;
 
@@ -44,23 +38,16 @@ public class BookingSystemModel implements Serializable {
     private Map<Integer, Room> roomMapping;
     private Map<Integer, Person> personMapping;
 
-    private String institutionNamePrev;
-    private List<Building> buildingsPrev;
-    private List<Room> roomsPrev;
-    private List<Person> peoplePrev;
-    private List<Booking> bookingsPrev;
-    private Map<Integer, Building> buildingMappingPrev;
-    private Map<Integer, Room> roomMappingPrev;
-    private Map<Integer, Person> personMappingPrev;
-
     private int id;
 
+    /**
+     * Construstor method for a Model class in the Room Booking System.
+     */
     @JsonCreator
     public BookingSystemModel() {
 
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        // objectMapper.findAndRegisterModules();
 
         institutionName = "[Unknown]";
         buildings = new ArrayList<>();
@@ -70,15 +57,7 @@ public class BookingSystemModel implements Serializable {
         buildingMapping = new HashMap<>();
         roomMapping = new HashMap<>();
         personMapping = new HashMap<>();
-        // previous versions for property change management
-        institutionNamePrev = "[Unknown]";
-        buildingsPrev = new ArrayList<>();
-        roomsPrev = new ArrayList<>();
-        peoplePrev = new ArrayList<>();
-        bookingsPrev = new ArrayList<>();
-        buildingMappingPrev = new HashMap<>();
-        roomMappingPrev = new HashMap<>();
-        personMappingPrev = new HashMap<>();
+        // used to track uniquness in case of non-unique names
         id = 0;
 
         this.notifier = new PropertyChangeSupport(this);
@@ -92,71 +71,86 @@ public class BookingSystemModel implements Serializable {
 
     /** Broadcast most recent change to all listeners */
     public void updateBuildings() {
-        notifier.firePropertyChange("buildings", buildingsPrev, buildings);
-        buildingsPrev = buildings;
-        notifier.firePropertyChange("buildingMapping", buildingMappingPrev, buildingMapping);
-        buildingMappingPrev = buildingMapping;
-
+        notifier.firePropertyChange("buildings", null, buildings);
+        notifier.firePropertyChange("buildingMapping", null, buildingMapping);
     }
 
     public void updateRooms() {
-        notifier.firePropertyChange("rooms", roomsPrev, rooms);
-        roomsPrev = rooms;
-        notifier.firePropertyChange("roomMapping", roomMappingPrev, roomMapping);
-        roomMappingPrev = roomMapping;
+        notifier.firePropertyChange("rooms", null, rooms);
+        notifier.firePropertyChange("roomMapping", null, roomMapping);
     }
 
     public void updatePeople() {
-        notifier.firePropertyChange("people", peoplePrev, people);
-        peoplePrev = people;
-        notifier.firePropertyChange("personMapping", personMappingPrev, personMapping);
-        personMappingPrev = personMapping;
-    }
-
-    public void replacedBookings() {
-        notifier.firePropertyChange("bookings", bookingsPrev, bookings);
-        System.out.println("replaced bookings");
-        bookingsPrev = bookings;
+        notifier.firePropertyChange("people", null, people);
+        notifier.firePropertyChange("personMapping", null, personMapping);
     }
 
     public void updateBookings() {
         notifier.firePropertyChange("bookings", null, bookings);
-        // notifier.fireIndexedPropertyChange("bookings", bookings.size(), bookingsPrev,
-        // bookings);
-        System.out.println("updated bookings");
-        bookingsPrev = bookings;
     }
 
     public void updateName() {
-        notifier.firePropertyChange("institutionName", institutionNamePrev, institutionName);
-        institutionNamePrev = institutionName;
+        notifier.firePropertyChange("institutionName", null, institutionName);
     }
 
+    /**
+     * Setter method for Insistution (Model) Name.
+     * 
+     * @param name
+     */
     public void setName(String name) {
         this.institutionName = name;
         updateName();
     }
 
+    /**
+     * Getter method for Insistution (Model) Name.
+     * 
+     * @return String
+     */
     public String getName() {
         return this.institutionName;
     }
 
+    /**
+     * Method matching a Room based on its unique Id.
+     * 
+     * @param id
+     * @return Room
+     */
     public Room matchRoomId(int id) {
         return this.roomMapping.get(id);
     }
 
+    /**
+     * Method matching a Building based on its unique Id.
+     * 
+     * @param id
+     * @return Building
+     */
     public Building matchBuildingId(int id) {
         return this.buildingMapping.get(id);
     }
 
+    /**
+     * Method matching a Person based on its unique Id.
+     * 
+     * @param id
+     * @return Person
+     */
     public Person matchPersonId(int id) {
         return this.personMapping.get(id);
     }
 
+    /**
+     * Method to load the data from a save JSON file.
+     * 
+     * @param loadName absolute path to the file
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void loadData(String loadName) throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(loadName);
-        // ObjectInputStream ois = new ObjectInputStream(fis);
-        // ois.close();
         BookingSystemModel loadedModel = objectMapper.readValue(fis, BookingSystemModel.class);
 
         institutionName = loadedModel.getName();
@@ -169,24 +163,35 @@ public class BookingSystemModel implements Serializable {
         roomMapping = loadedModel.getRoomMap();
         id = loadedModel.getId();
 
-        // TODO
         updateName();
         updateBuildings();
         updateRooms();
         updatePeople();
-        // updateBookings();
-        replacedBookings();
+        updateBookings();
     }
 
+    /**
+     * Method to save the sessio data from a JSON file.
+     * 
+     * @param saveName absolute path to the save file
+     * @throws IOException
+     */
     public void saveData(String saveName) throws IOException {
         objectMapper.writeValue(new File(saveName), this);
-        // FileOutputStream fos = new FileOutputStream(saveName);
-        // ObjectOutputStream oos = new ObjectOutputStream(fos);
-        // oos.writeObject(this);
-        // oos.close();
     }
 
+    /**
+     * Method to add a new Person to the Booking System.
+     * 
+     * @param fullName Person's name
+     * @param email    Person's email (has to be unique).
+     */
     public void addPerson(String fullName, String email) {
+        // check that the email has not been used before
+        List<String> takenEmails = people.stream().map(x -> x.getEmail()).collect(Collectors.toList());
+        if (takenEmails.contains(email)) {
+            throw new IllegalArgumentException("Email already taken!");
+        }
         Person newPerson = new Person(fullName, email, id);
         id++;
         this.people.add(newPerson);
@@ -194,6 +199,11 @@ public class BookingSystemModel implements Serializable {
         updatePeople();
     }
 
+    /**
+     * Method to remove a Person from the Booking System.
+     * 
+     * @param person Person object
+     */
     public void removePerson(Person person) {
         this.people.remove(person);
         this.personMapping.remove(person.getId());
@@ -205,29 +215,64 @@ public class BookingSystemModel implements Serializable {
         }
     }
 
+    /**
+     * Getter method for Bookings currently in the System.
+     * 
+     * @param p Person object
+     * @return List<Booking>
+     */
     public List<Booking> getBookings(Person p) {
         return bookings.stream()
                 .filter(b -> b.getOwner().equals(p))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Getter method for Bookings currently in the System.
+     * 
+     * @param r Room object
+     * @return List<Booking>
+     */
     public List<Booking> getBookings(Room r) {
         return bookings.stream()
                 .filter(b -> b.getVenue().equals(r))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Getter method for Bookings currently in the System.
+     * 
+     * @param d Date object
+     * @return List<Booking>
+     */
     public List<Booking> getBookings(LocalDate d) {
         return bookings.stream()
                 .filter(b -> b.getDate().equals(d))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Getter method for People currently in the System.
+     * 
+     * @return List<Person>
+     */
     public List<Person> getPeople() {
         return this.people;
     }
 
+    /**
+     * Method to add a new Building to the Booking System.
+     * 
+     * @param name    Building name
+     * @param address Building address
+     */
     public void addBuilding(String name, String address) {
+        // check if name is already used
+        List<String> buildingNames = buildings.stream().map(x -> x.getName()).collect(Collectors.toList());
+        if (buildingNames.contains(name)) {
+            throw new IllegalArgumentException("Building name already taken!");
+        }
+
         Building newBuilding = new Building(name, address, id);
         id++;
         this.buildings.add(newBuilding);
@@ -235,6 +280,11 @@ public class BookingSystemModel implements Serializable {
         updateBuildings();
     }
 
+    /**
+     * Method to remove a Building from the Booking System.
+     * 
+     * @param building
+     */
     public void removeBuilding(Building building) {
         this.buildings.remove(building);
         this.buildingMapping.remove(building.getId());
@@ -251,11 +301,26 @@ public class BookingSystemModel implements Serializable {
         updateBookings();
     }
 
+    /**
+     * Getter method for Buildings currently in the System.
+     * 
+     * @return List<Building>
+     */
     public List<Building> getBuildings() {
         return this.buildings;
     }
 
+    /**
+     * Method to add a new Room from the Booking System.
+     * 
+     * @param name     Room name
+     * @param building Associated Building Object
+     */
     public void addRoom(String name, Building building) {
+        List<String> roomNames = getRooms(building).stream().map(x -> x.getName()).collect(Collectors.toList());
+        if (roomNames.contains(name)) {
+            throw new IllegalArgumentException("Room name already taken!");
+        }
         Room r = new Room(name, building.getId(), id);
         id++;
         roomMapping.put(r.getId(), r);
@@ -263,6 +328,11 @@ public class BookingSystemModel implements Serializable {
         updateRooms();
     }
 
+    /**
+     * Method to remove a Room from the Booking System.
+     * 
+     * @param r Room object
+     */
     public void removeRoom(Room r) {
         this.rooms.remove(r);
         this.roomMapping.remove(r.getId());
@@ -275,47 +345,87 @@ public class BookingSystemModel implements Serializable {
         updateBookings();
     }
 
+    /**
+     * Getter method for Rooms currently in the System.
+     * 
+     * @return List<Room>
+     */
     public List<Room> getRooms() {
         return this.rooms;
     }
 
+    /**
+     * Getter method for Rooms currently in the System.
+     * 
+     * @param b Building Object
+     * @return List<Room>
+     */
     public List<Room> getRooms(Building b) {
         return rooms.stream()
                 .filter(r -> r.getBuildingId() == b.getId())
                 .collect(Collectors.toList());
     }
 
+    /**
+     * @param date
+     * @param start
+     * @param end
+     * @param building
+     * @param room
+     * @param owner
+     * @throws IllegalBookingException
+     */
     public void addBooking(LocalDate date, LocalTime start, LocalTime end, Building building, Room room, Person owner)
             throws IllegalBookingException {
         Booking newBooking = new Booking(date, start, end, owner, room);
         // Check that booking does not overlap with another
-        for (Booking b : this.bookings) {
+        List<Booking> roomBookings = this.bookings.stream().filter(x -> x.getVenue().equals(room))
+                .collect(Collectors.toList());
+        for (Booking b : roomBookings) {
             if (b.getDate().equals(newBooking.getDate())) {
-                int overlap = newBooking.getEndTime().compareTo(b.getStartTime());
-                if (overlap > 0) {
+                if ((b.getStartTime().compareTo(newBooking.getStartTime()) < 0
+                        && newBooking.getStartTime().compareTo(b.getEndTime()) < 0)
+                        ||
+                        (newBooking.getStartTime().compareTo(b.getStartTime()) < 0
+                                && b.getStartTime().compareTo(newBooking.getEndTime()) < 0)
+                        ||
+                        (newBooking.getStartTime().compareTo(b.getStartTime()) == 0
+                                && newBooking.getEndTime().compareTo(b.getEndTime()) == 0)) {
                     throw new IllegalBookingException("Booking overlaps with existing booking!");
                 }
             }
         }
-        // int idx = this.people.indexOf(owner);
-        // this.people.get(idx).addBooking(newBooking);
         this.bookings.add(newBooking);
         updateBookings();
-        // updatePeople();
     }
 
+    /**
+     * Method to remove a Booking from the Booking System.
+     * 
+     * @param booking Booking object
+     */
     public void removeBooking(Booking booking) {
         this.bookings.remove(booking);
-        // int idx = this.people.indexOf(booking.getOwner());
-        // this.people.get(idx).removeBooking(booking);
         updateBookings();
-        // updatePeople();
     }
 
+    /**
+     * Getter method for all Bookings currently in the System.
+     * 
+     * @return List<Booking>
+     */
     public List<Booking> getBookings() {
         return this.bookings;
     }
 
+    /**
+     * Getter method for Bookings currently in the System.
+     * 
+     * @param dates
+     * @param rooms
+     * @param owners
+     * @return List<Booking>
+     */
     public List<Booking> getBookings(List<LocalDate> dates, List<Room> rooms, List<Person> owners) {
 
         return this.bookings.stream()
@@ -324,18 +434,41 @@ public class BookingSystemModel implements Serializable {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Getter method for a dictionary of Buildings to their unique ids.
+     * Used for matching objects.
+     * 
+     * @return Map<Integer, Building>
+     */
     public Map<Integer, Building> getBuildingsMap() {
         return this.buildingMapping;
     }
 
+    /**
+     * Getter method for a dictionary of Persons to their unique ids.
+     * Used for matching objects.
+     * 
+     * @return Map<Integer, Person>
+     */
     public Map<Integer, Person> getPersonMap() {
         return this.personMapping;
     }
 
+    /**
+     * Getter method for a dictionary of Rooms to their unique ids.
+     * Used for matching objects.
+     * 
+     * @return Map<Integer, Room>
+     */
     public Map<Integer, Room> getRoomMap() {
         return this.roomMapping;
     }
 
+    /**
+     * Getter method for model's Id variable.
+     * 
+     * @return int
+     */
     public int getId() {
         return this.id;
     }
