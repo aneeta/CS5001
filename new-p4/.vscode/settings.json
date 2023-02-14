@@ -1,0 +1,15 @@
+{
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/jackson-core-2.14.1.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/jackson-core-2.14.1-sources.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/jackson-databind-2.14.1.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/jackson-annotations-2.14.1.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/jackson-datatype-jsr310-2.14.1.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/remotecontent?filepath=junit%2Fjunit%2F4.13.2%2Fjunit-4.13.2.jar",
+        "/home/as627/workspace_linux/sem_1/CS5001/new-p4/lib/remotecontent?filepath=org%2Fhamcrest%2Fhamcrest-core%2F1.3%2Fhamcrest-core-1.3.jar"
+    ]
+}
